@@ -13,13 +13,13 @@
 
 $menuEntries = Array(
 	Array(
-		'text' => 'data2curl - Configuration',
+		'text' => 'TPLink - Configuration',
 		'type' => 'output',
 		'page' => 'plugin_setup.php',
 		'wrap' => 1
 	),
 	Array(
-		'text' => 'data2curl - About',
+		'text' => 'TPLink - About',
 		'type' => 'help',
 		'page' => 'about.php',
 		'wrap' => 1
