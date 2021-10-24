@@ -1,0 +1,20 @@
+{
+	"repoName": "fpp-plugin-tplink",
+	"name": "tplink Plugin for FPP",
+	"author": "Scott Hanson (computergeek1507)",
+	"description": "This plugin allows channel data to a TP-Link.",
+	"homeURL": "https://github.com/computergeek1507/fpp-plugin-tplink",
+	"srcURL": "https://github.com/computergeek1507/fpp-plugin-tplink.git",
+	"bugURL": "https://github.com/computergeek1507/fpp-plugin-tplink/issues",
+	"allowUpdates": 1,
+	"versions": [
+		{
+			"minFPPVersion": "4.0",
+			"maxFPPVersion": "0",
+			"branch": "main",
+			"sha": "",
+			"dependencies": {
+			}
+		}
+	]
+}
