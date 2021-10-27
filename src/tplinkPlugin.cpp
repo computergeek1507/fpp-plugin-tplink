@@ -73,12 +73,12 @@ public:
 
     virtual void playlistCallback(const Json::Value &playlist, const std::string &action, const std::string &section, int item) {
         if (settings["Start"] == "PlaylistStart" && action == "start") {
-            //EnableCURLItems();
+            EnableTPLinkItems();
         }  
     }
 
     void EnableTPLinkItems() {
-        for(auto & output: _TPLinkLOutputs)
+        for(auto & output: _TPLinkOutputs)
         {
             output->EnableOutput();
         }
@@ -97,7 +97,7 @@ public:
         std::ofstream outfile;
         outfile.open ("/home/fpp/media/config/fpp-plugin-tplink");
 
-        if(_CURLOutputs.size() ==0) {
+        if(_TPLinkOutputs.size() ==0) {
             outfile <<  "nooutputsfound;1";
             outfile <<  "\n";
         }
