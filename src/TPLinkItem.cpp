@@ -31,18 +31,16 @@ TPLinkItem::TPLinkItem(std::string const& ip, unsigned int startChannel) :
 {
 }
 
-TPLinkItem::~TPLinkItem()
-{
+TPLinkItem::~TPLinkItem() {
 
 }
 
-bool TPLinkItem::SendData( unsigned char *data)
-{
+bool TPLinkItem::SendData( unsigned char *data) {
     try
     {
         if(m_unreachable){
-			return false;
-		}
+            return false;
+        }
 
         uint8_t r = data[m_startChannel - 1];
         uint8_t g = data[m_startChannel];
@@ -72,11 +70,10 @@ bool TPLinkItem::SendData( unsigned char *data)
     return false;
 }
 
-void TPLinkItem::outputData( uint8_t r ,uint8_t g ,uint8_t b )
-{
+void TPLinkItem::outputData( uint8_t r ,uint8_t g ,uint8_t b ) {
     //{"smartlife.iot.smartbulb.lightingservice":{"transition_light_state":{"ignore_default":1,"transition_period":150,"mode":"normal","hue":120,"on_off":1,"saturation":65,"color_temp":0,"brightness":10}}}
     
-	float h,si,sv,i,v;
+    float h,si,sv,i,v;
 
     RGBtoHSIV(r/255,g/255,b/255,h,si,sv,i,v);
     
@@ -85,9 +82,9 @@ void TPLinkItem::outputData( uint8_t r ,uint8_t g ,uint8_t b )
     int isv = (sv*100);
     int ii = (i*100);
     int iv = (v*100);
-	
-	const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":0,\"mode\":\"normal\",\"hue\":" 
-	+ std::to_string(ih) + ",\"on_off\":1,\"saturation\":" + std::to_string(isv) + ",\"color_temp\":0,\"brightness\":" + std::to_string(iv) + "}}}";
+
+    const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":0,\"mode\":\"normal\",\"hue\":" 
+    + std::to_string(ih) + ",\"on_off\":1,\"saturation\":" + std::to_string(isv) + ",\"color_temp\":0,\"brightness\":" + std::to_string(iv) + "}}}";
     sendCmd(cmd);
 }
 
@@ -128,16 +125,14 @@ void TPLinkItem::RGBtoHSIV(float fR, float fG, float fB, float& fH, float& fSI, 
         fH += 360.0;
 }
 
-void TPLinkItem::serializeUint32(char (&buf)[4], uint32_t val)
-{
+void TPLinkItem::serializeUint32(char (&buf)[4], uint32_t val) {
     buf[0] = (val >> 24) & 0xff;
     buf[1] = (val >> 16) & 0xff;
     buf[2] = (val >> 8) & 0xff;
     buf[3] = val & 0xff;
 }
 
-void TPLinkItem::decrypt(char *input, uint16_t length)
-{
+void TPLinkItem::decrypt(char *input, uint16_t length) {
     uint8_t key = 171;
     uint8_t next_key;
     for (uint16_t i = 0; i < length; i++)
@@ -148,18 +143,15 @@ void TPLinkItem::decrypt(char *input, uint16_t length)
     }
 }
 
-void TPLinkItem::encrypt(char *data, uint16_t length)
-{
+void TPLinkItem::encrypt(char *data, uint16_t length) {
     uint8_t key = 171;
-    for (uint16_t i = 0; i < length + 1; i++)
-    {
+    for (uint16_t i = 0; i < length + 1; i++) {
         data[i] = key ^ data[i];
         key = data[i];
     }
 }
 
-void TPLinkItem::encryptWithHeader(char *out, char *data, uint16_t length)
-{
+void TPLinkItem::encryptWithHeader(char *out, char *data, uint16_t length) {
     char serialized[4];
     serializeUint32(serialized, length);
     encrypt(data, length);
@@ -167,38 +159,38 @@ void TPLinkItem::encryptWithHeader(char *out, char *data, uint16_t length)
     std::memcpy(out + 4, data, length);
 }
 
-std::string TPLinkItem::getInfo()
-{
+std::string TPLinkItem::getInfo() {
     const std::string cmd = "{\"system\":{\"get_sysinfo\":{}}}";
     return sendCmd(cmd);
 }
 
-std::string TPLinkItem::on()
-{
+std::string TPLinkItem::setRelayOn() {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
     return sendCmd(cmd);
 }
 
-std::string TPLinkItem::off()
-{
+std::string TPLinkItem::setRelayOff() {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":0}}}";
     return sendCmd(cmd);
 }
 
-std::string TPLinkItem::setLedOff()
-{
+std::string TPLinkItem::setLedOff() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":1}}}";
     return sendCmd(cmd);
 }
 
-std::string TPLinkItem::setLedOn()
-{
+std::string TPLinkItem::setLedOn() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":0}}}";
     return sendCmd(cmd);
 }
 
-std::string TPLinkItem::sendCmd(std::string cmd)
-{
+std::string TPLinkItem::setLightOff(){
+
+    const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":0,\"mode\":\"normal\",\"on_off\":0}}}";
+    return sendCmd(cmd);
+}
+
+std::string TPLinkItem::sendCmd(std::string cmd) {
     char encrypted[cmd.length() + 4];
     encryptWithHeader(encrypted, const_cast<char *>(cmd.c_str()), cmd.length());
     char response[2048] = {0};
@@ -211,8 +203,7 @@ std::string TPLinkItem::sendCmd(std::string cmd)
     return std::string(response);
 }
 
-uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const char *cmd, uint16_t length)
-{
+uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const char *cmd, uint16_t length) {
 
     struct sockaddr_in address;
     int sock = 0, valread;
@@ -220,8 +211,7 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
     char buf[2048] = {0};
     //  char buffer[2048] = {0};
     //    char buffer[2048] = {0};
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
         return 0;
     }
@@ -232,14 +222,12 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
     serv_addr.sin_port = htons(port);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, ip_add, &serv_addr.sin_addr) <= 0)
-    {
+    if (inet_pton(AF_INET, ip_add, &serv_addr.sin_addr) <= 0) {
         printf("\nInvalid address/ Address not supported \n");
         return 0;
     }
 
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         printf("\nConnection Failed \n");
         return 0;
     }
@@ -248,12 +236,9 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
     valread = read(sock, buf, 2048);
     close(sock);
 
-    if (valread == 0)
-    {
+    if (valread == 0) {
         printf("\nNo bytes read\n");
-    }
-    else
-    {
+    } else {
         // buf + 4 strips 4 byte header
         // valread - 3 leaves 1 byte for terminating null character
         strncpy(out, buf + 4, valread - 3);

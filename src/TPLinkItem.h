@@ -14,6 +14,10 @@ public:
     ~TPLinkItem();
 
     bool SendData( unsigned char *data);
+    std::string setLightOff();
+    std::string setRelayOn();
+    std::string setRelayOff();
+    void outputData( uint8_t r ,uint8_t g ,uint8_t b );
 
     std::string GetIPAddress(){return m_ipAddress;}
     unsigned int GetStartChannel(){return m_startChannel;}
@@ -31,9 +35,6 @@ private:
     uint8_t m_b;
     std::atomic<bool> m_unreachable;
 
-
-    void outputData( uint8_t r ,uint8_t g ,uint8_t b );
-
     void RGBtoHSIV(float fR, float fG, float fB, float& fH, float& fSI, float& fSV,float& fI, float& fV);
 
     static void serializeUint32(char (&buf)[4], uint32_t val);
@@ -43,11 +44,9 @@ private:
     static uint16_t sockConnect(char* out, const char *ip_add, int port, const char *cmd, uint16_t length);
 
     std::string sendCmd(std::string cmd);
-    std::string on();
-    std::string off();
+
     std::string getInfo();
 
     std::string setLedOff();
     std::string setLedOn();
-
 };
