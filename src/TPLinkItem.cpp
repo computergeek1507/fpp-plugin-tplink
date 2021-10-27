@@ -128,6 +128,14 @@ void TPLinkItem::RGBtoHSIV(float fR, float fG, float fB, float& fH, float& fSI, 
         fH += 360.0;
 }
 
+void TPLinkItem::serializeUint32(char (&buf)[4], uint32_t val)
+{
+    buf[0] = (val >> 24) & 0xff;
+    buf[1] = (val >> 16) & 0xff;
+    buf[2] = (val >> 8) & 0xff;
+    buf[3] = val & 0xff;
+}
+
 void TPLinkItem::decrypt(char *input, uint16_t length)
 {
     uint8_t key = 171;

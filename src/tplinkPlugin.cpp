@@ -121,7 +121,7 @@ public:
 
                 unsigned int sc =  config[i]["startchannel"].asInt();
                 if(!ip.empty()) {
-                    LogInfo(VB_PLUGIN, "Adding IP %s \n", ip.c_str());
+                    LogInfo(VB_PLUGIN, "Adding IP %s SC %d\n", ip.c_str(), sc);
                     std::unique_ptr<TPLinkItem> tplinkItem = std::make_unique<TPLinkItem>(ip, sc);
                     _TPLinkOutputs.push_back(std::move(tplinkItem));
                 }

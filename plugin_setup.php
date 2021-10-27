@@ -29,7 +29,7 @@ $pluginJson = convertAndGetSettings();
 
 <div id="global" class="settings">
 <fieldset>
-<legend>FPP TPLink Config</legend>
+<legend>FPP TP-Link Config</legend>
 
 <script>
 
@@ -38,7 +38,7 @@ var tplinkConfig = <? echo json_encode($pluginJson, JSON_PRETTY_PRINT); ?>;
 
 var uniqueId = 1;
 var modelOptions = "";
-function AddCURLItem() {
+function AddTPLinkItem() {
     var id = $("#tplinkTableBody > tr").length + 1;
     var html = "<tr class='fppTableRow";
     if (id % 2 != 0) {
@@ -59,7 +59,7 @@ function AddCURLItem() {
     return newRow;
 }
 
-function SaveCURLItem(row) {
+function SaveTPLinkItem(row) {
     var ip = $(row).find('.ipaddress').val();
     var startchan = parseInt($(row).find('.startchan').val(),10);
 
@@ -70,11 +70,11 @@ function SaveCURLItem(row) {
     return json;
 }
 
-function SaveCURLItems() {
+function SaveTPLinkItems() {
     var tplinkConfig = [];
     var i = 0;
     $("#tplinkTableBody > tr").each(function() {
-        tplinkConfig[i++] = SaveCURLItem(this);
+        tplinkConfig[i++] = SaveTPLinkItem(this);
     });
     
     var data = JSON.stringify(tplinkConfig);
@@ -104,7 +104,7 @@ function RenumberRows() {
         }
     });
 }
-function RemoveCURLItem() {
+function RemoveTPLinkItem() {
     if ($('#tplinkTableBody').find('.selectedEntry').length) {
         $('#tplinkTableBody').find('.selectedEntry').remove();
         RenumberRows();
@@ -134,9 +134,9 @@ $(document).ready(function() {
 <div>
 <table border=0>
 <tr><td colspan='2'>
-        <input type="button" value="Save" class="buttons genericButton" onclick="SaveCURLItems();">
-        <input type="button" value="Add" class="buttons genericButton" onclick="AddCURLItem();">
-        <input id="delButton" type="button" value="Delete" class="deleteEventButton disableButtons genericButton" onclick="RemoveCURLItem();">
+        <input type="button" value="Save" class="buttons genericButton" onclick="SaveTPLinkItems();">
+        <input type="button" value="Add" class="buttons genericButton" onclick="AddTPLinkItem();">
+        <input id="delButton" type="button" value="Delete" class="deleteEventButton disableButtons genericButton" onclick="RemoveTPLinkItem();">
     </td>
 </tr>
 </table>
@@ -153,15 +153,13 @@ $(document).ready(function() {
 </div>
 <div>
 <p>
-<p>Use cURL to sent {Message} to 'http://{IP}:{Port}{URL}'. 
-Leave {Message} blank for GET requests. 
 <p>
 </div>
 </div>
 <script>
 
 $.each(tplinkConfig, function( key, val ) {
-    var row = AddCURLItem();
+    var row = AddTPLinkItem();
     $(row).find('.ipaddress').val(val["ip"]);
     $(row).find('.startchannel').val(val["startchannel"]);
 
