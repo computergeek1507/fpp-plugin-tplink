@@ -71,21 +71,7 @@ bool TPLinkItem::SendData( unsigned char *data) {
 }
 
 void TPLinkItem::outputData( uint8_t r ,uint8_t g ,uint8_t b ) {
-    //{"smartlife.iot.smartbulb.lightingservice":{"transition_light_state":{"ignore_default":1,"transition_period":150,"mode":"normal","hue":120,"on_off":1,"saturation":65,"color_temp":0,"brightness":10}}}
-    
-    float h,si,sv,i,v;
-
-    RGBtoHSIV(r/255,g/255,b/255,h,si,sv,i,v);
-    
-    int ih = (h);
-    int isi = (si*100);
-    int isv = (sv*100);
-    int ii = (i*100);
-    int iv = (v*100);
-
-    const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":0,\"mode\":\"normal\",\"hue\":" 
-    + std::to_string(ih) + ",\"on_off\":1,\"saturation\":" + std::to_string(isv) + ",\"color_temp\":0,\"brightness\":" + std::to_string(iv) + "}}}";
-    sendCmd(cmd);
+    setLightOnRGB(r,g,b);
 }
 
 void TPLinkItem::RGBtoHSIV(float fR, float fG, float fB, float& fH, float& fSI, float& fSV,float& fI, float& fV) {
@@ -181,6 +167,33 @@ std::string TPLinkItem::setLedOff() {
 
 std::string TPLinkItem::setLedOn() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":0}}}";
+    return sendCmd(cmd);
+}
+
+std::string TPLinkItem::setLightOnRGB( uint8_t r, uint8_t g, uint8_t b ) {
+	float h,si,sv,i,v;
+
+    RGBtoHSIV(r/255,g/255,b/255,h,si,sv,i,v);
+    
+    int ih = (h);
+    int isi = (si*100);
+    int isv = (sv*100);
+    int ii = (i*100);
+    int iv = (v*100);
+	return setLightOnHSV(ih, isv, iv);
+}
+
+std::string TPLinkItem::setLightOnHSV( int hue, int saturation, int brightness ) {
+    //{"smartlife.iot.smartbulb.lightingservice":{"transition_light_state":{"ignore_default":1,"transition_period":150,"mode":"normal","hue":120,"on_off":1,"saturation":65,"color_temp":0,"brightness":10}}}
+    
+    const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":0,\"mode\":\"normal\",\"hue\":" 
+    + std::to_string(hue) + ",\"on_off\":1,\"saturation\":" + std::to_string(saturation) + ",\"brightness\":" + std::to_string(brightness) + "}}}";
+    return sendCmd(cmd);
+}
+
+std::string TPLinkItem::setLightColorTemp( int color_Temp ){
+
+    const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":0,\"mode\":\"normal\",\"on_off\":1,\"color_temp\":" + std::to_string(color_Temp) + "}}}";
     return sendCmd(cmd);
 }
 

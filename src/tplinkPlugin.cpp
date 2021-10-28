@@ -50,10 +50,10 @@ public:
     virtual ~TPLinkPlugin() {
         _TPLinkOutputs.clear();
     }
-//        args.push_back(CommandArg("loop", "bool", "Loop Effect").setDefaultValue("true"));
+
     class SetTPLinkSwitchCommand : public Command {
     public:
-        SetTPLinkSwitchCommand(TPLinkPlugin *p) : Command("SetTPLinkSwitchCommand"), plugin(p) {
+        SetTPLinkSwitchCommand(TPLinkPlugin *p) : Command("Set TPLink Switch"), plugin(p) {
             args.push_back(CommandArg("IP", "string", "IP Address"));
             args.push_back(CommandArg("state", "bool", "Set Switch On or Off")
                            .setDefaultValue("true"));
@@ -74,9 +74,9 @@ public:
         TPLinkPlugin *plugin;
     };
 
-    class SetTPLinkLightOnCommand : public Command {
+    class SetTPLinkLightRGBCommand : public Command {
     public:
-        SetTPLinkLightOnCommand(TPLinkPlugin *p) : Command("SetTPLinkLightOnCommand"), plugin(p) {
+        SetTPLinkLightRGBCommand(TPLinkPlugin *p) : Command("Set TPLink Light RGB"), plugin(p) {
             args.push_back(CommandArg("IP", "string", "IP Address"));
             args.push_back(CommandArg("r", "int", "Red").setRange(0, 255).setDefaultValue("255"));
             args.push_back(CommandArg("g", "int", "Green").setRange(0, 255).setDefaultValue("255"));
@@ -100,15 +100,69 @@ public:
             if (args.size() >= 4) {
                 b = std::stoi(args[3]);
             }
-            plugin->SetLightOn(ipAddress, r, g, b);
-            return std::make_unique<Command::Result>("TPLink Light Set On");
+            plugin->SetLightOnRGB(ipAddress, r, g, b);
+            return std::make_unique<Command::Result>("TPLink Light RGB Set");
+        }
+        TPLinkPlugin *plugin;
+    };
+
+    class SetTPLinkLightHSVCommand : public Command {
+    public:
+        SetTPLinkLightHSVCommand(TPLinkPlugin *p) : Command("Set TPLink Light HSV"), plugin(p) {
+            args.push_back(CommandArg("IP", "string", "IP Address"));
+            args.push_back(CommandArg("hue", "int", "Hue").setRange(0, 360).setDefaultValue("1"));
+            args.push_back(CommandArg("sat", "int", "Saturation").setRange(0, 100).setDefaultValue("100"));
+            args.push_back(CommandArg("bright", "int", "Brightness").setRange(0, 100).setDefaultValue("100"));
+        }
+        
+        virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
+            std::string ipAddress = "";
+            int hue = 1;
+            int sat = 100;
+            int bright = 100;
+            if (args.size() >= 1) {
+                ipAddress = args[0];
+            }
+            if (args.size() >= 2) {
+                hue = std::stoi(args[1]);
+            }
+            if (args.size() >= 3) {
+                sat = std::stoi(args[2]);
+            }
+            if (args.size() >= 4) {
+                bright = std::stoi(args[3]);
+            }
+            plugin->SetLightOnHSV(ipAddress, hue, sat, bright);
+            return std::make_unique<Command::Result>("TPLink Light HSV Set");
+        }
+        TPLinkPlugin *plugin;
+    };
+	
+    class SetTPLinkLightColorTempCommand : public Command {
+    public:
+        SetTPLinkLightColorTempCommand(TPLinkPlugin *p) : Command("Set TPLink Switch"), plugin(p) {
+            args.push_back(CommandArg("IP", "string", "IP Address"));
+            args.push_back(CommandArg("color_temp", "int", "Color Temp").setRange(2500, 9000).setDefaultValue("5000"));
+        }
+        
+        virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
+            std::string ipAddress = "";
+            int colorTemp = 5000;
+            if (args.size() >= 1) {
+                ipAddress = args[0];
+            }
+            if (args.size() >= 2) {
+                colorTemp = std::stoi(args[1]);
+            }
+            plugin->SetLightColorTemp(ipAddress, colorTemp);
+            return std::make_unique<Command::Result>("TPLink Light Color Temp Set");
         }
         TPLinkPlugin *plugin;
     };
 
     class SetTPLinkLightOffCommand : public Command {
     public:
-        SetTPLinkLightOffCommand(TPLinkPlugin *p) : Command("SetTPLinkLightOffCommand"), plugin(p) {
+        SetTPLinkLightOffCommand(TPLinkPlugin *p) : Command("Set TPLink Light Off"), plugin(p) {
             args.push_back(CommandArg("IP", "string", "IP Address"));
  
         }
@@ -127,7 +181,9 @@ public:
 
     void registerCommand() {
         CommandManager::INSTANCE.addCommand(new SetTPLinkSwitchCommand(this));
-        CommandManager::INSTANCE.addCommand(new SetTPLinkLightOnCommand(this));
+        CommandManager::INSTANCE.addCommand(new SetTPLinkLightRGBCommand(this));
+        CommandManager::INSTANCE.addCommand(new SetTPLinkLightHSVCommand(this));
+        CommandManager::INSTANCE.addCommand(new SetTPLinkLightColorTempCommand(this));
         CommandManager::INSTANCE.addCommand(new SetTPLinkLightOffCommand(this));
     }
 
@@ -229,9 +285,19 @@ public:
         }
     }
 
-    void SetLightOn(std::string const& ip, uint8_t r, uint8_t g, uint8_t b ) {
+    void SetLightOnRGB(std::string const& ip, uint8_t r, uint8_t g, uint8_t b ) {
         TPLinkItem tplinkItem(ip, 1);
-        tplinkItem.outputData(r, g, b);
+        tplinkItem.setLightOnRGB(r, g, b);
+    }
+
+    void SetLightOnHSV(std::string const& ip, int hue, int sat, int bright ) {
+        TPLinkItem tplinkItem(ip, 1);
+        tplinkItem.setLightOnHSV(hue, sat, bright);
+    }
+
+    void SetLightColorTemp(std::string const& ip, int color_temp ) {
+        TPLinkItem tplinkItem(ip, 1);
+        tplinkItem.setLightColorTemp(color_temp);
     }
 
     void SetLightOff(std::string const& ip) {
