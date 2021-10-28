@@ -140,7 +140,7 @@ public:
 	
     class SetTPLinkLightColorTempCommand : public Command {
     public:
-        SetTPLinkLightColorTempCommand(TPLinkPlugin *p) : Command("Set TPLink Switch"), plugin(p) {
+        SetTPLinkLightColorTempCommand(TPLinkPlugin *p) : Command("Set TPLink Light Color Temp"), plugin(p) {
             args.push_back(CommandArg("IP", "string", "IP Address"));
             args.push_back(CommandArg("color_temp", "int", "Color Temp").setRange(2500, 9000).setDefaultValue("5000"));
         }
