@@ -15,9 +15,8 @@ public:
 
     bool SendData( unsigned char *data);
 
-    std::string setLightColorTemp( int color_Temp );
-    std::string setLightOnRGB( uint8_t r ,uint8_t g ,uint8_t b );
-    std::string setLightOnHSV( int hue ,int saturation ,int brightness );
+    std::string setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp = 0);
+    std::string setLightOnHSV( int hue, int saturation, int brightness, int color_Temp = 0);
     std::string setLightOff();
     std::string setRelayOn();
     std::string setRelayOff();
