@@ -82,6 +82,7 @@ public:
             args.push_back(CommandArg("g", "int", "Green").setRange(0, 255).setDefaultValue("255"));
             args.push_back(CommandArg("b", "int", "Blue").setRange(0, 255).setDefaultValue("255"));
             args.push_back(CommandArg("color_temp", "int", "Color Temp").setRange(0, 9000).setDefaultValue("0"));
+            args.push_back(CommandArg("period", "int", "Delay in ms").setRange(0, 30000).setDefaultValue("0"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
@@ -90,6 +91,7 @@ public:
             uint8_t g = 255;
             uint8_t b = 255;
             int colorTemp = 0;
+            int period = 0;
             if (args.size() >= 1) {
                 ipAddress = args[0];
             }
@@ -105,7 +107,10 @@ public:
             if (args.size() >= 5) {
                 colorTemp = std::stoi(args[4]);
             }
-            plugin->SetLightOnRGB(ipAddress, r, g, b, colorTemp);
+            if (args.size() >= 6) {
+                period = std::stoi(args[5]);
+            }
+            plugin->SetLightOnRGB(ipAddress, r, g, b, colorTemp, period);
             return std::make_unique<Command::Result>("TPLink Light RGB Set");
         }
         TPLinkPlugin *plugin;
@@ -119,6 +124,7 @@ public:
             args.push_back(CommandArg("sat", "int", "Saturation").setRange(0, 100).setDefaultValue("100"));
             args.push_back(CommandArg("bright", "int", "Brightness").setRange(0, 100).setDefaultValue("100"));
             args.push_back(CommandArg("color_temp", "int", "Color Temp").setRange(0, 9000).setDefaultValue("0"));
+            args.push_back(CommandArg("period", "int", "Delay in ms").setRange(0, 30000).setDefaultValue("0"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
@@ -127,6 +133,7 @@ public:
             int sat = 100;
             int bright = 100;
             int colorTemp = 0;
+            int period = 0;
             if (args.size() >= 1) {
                 ipAddress = args[0];
             }
@@ -142,7 +149,10 @@ public:
             if (args.size() >= 5) {
                 colorTemp = std::stoi(args[4]);
             }
-            plugin->SetLightOnHSV(ipAddress, hue, sat, bright, colorTemp);
+            if (args.size() >= 6) {
+                period = std::stoi(args[5]);
+            }
+            plugin->SetLightOnHSV(ipAddress, hue, sat, bright, colorTemp, period);
             return std::make_unique<Command::Result>("TPLink Light HSV Set");
         }
         TPLinkPlugin *plugin;
@@ -271,14 +281,14 @@ public:
         }
     }
 
-    void SetLightOnRGB(std::string const& ip, uint8_t r, uint8_t g, uint8_t b, int color_temp ) {
+    void SetLightOnRGB(std::string const& ip, uint8_t r, uint8_t g, uint8_t b, int color_temp, int period ) {
         TPLinkItem tplinkItem(ip, 1);
-        tplinkItem.setLightOnRGB(r, g, b, color_temp);
+        tplinkItem.setLightOnRGB(r, g, b, color_temp, period);
     }
 
-    void SetLightOnHSV(std::string const& ip, int hue, int sat, int bright, int color_temp ) {
+    void SetLightOnHSV(std::string const& ip, int hue, int sat, int bright, int color_temp, int period) {
         TPLinkItem tplinkItem(ip, 1);
-        tplinkItem.setLightOnHSV(hue, sat, bright, color_temp);
+        tplinkItem.setLightOnHSV(hue, sat, bright, color_temp, period);
     }
 
     void SetLightOff(std::string const& ip) {
