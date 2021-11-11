@@ -1,8 +1,8 @@
 {
 	"repoName": "fpp-plugin-tplink",
-	"name": "tplink Plugin for FPP",
+	"name": "TP-Link(Kasa) Plugin for FPP",
 	"author": "Scott Hanson (computergeek1507)",
-	"description": "This plugin allows channel data to a TP-Link.",
+	"description": "This plugin allows channel data to be sent to a TP-Link bulbs. Supports Commands",
 	"homeURL": "https://github.com/computergeek1507/fpp-plugin-tplink",
 	"srcURL": "https://github.com/computergeek1507/fpp-plugin-tplink.git",
 	"bugURL": "https://github.com/computergeek1507/fpp-plugin-tplink/issues",
