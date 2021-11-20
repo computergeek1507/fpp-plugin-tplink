@@ -18,8 +18,8 @@ public:
     std::string setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp = 0, int period = 0);
     std::string setLightOnHSV( int hue, int saturation, int brightness, int color_Temp = 0, int period = 0);
     std::string setLightOff();
-    std::string setRelayOn();
-    std::string setRelayOff();
+    std::string setRelayOn(int plug_num);
+    std::string setRelayOff(int plug_num);
 
     std::string GetIPAddress(){return m_ipAddress;}
     unsigned int GetStartChannel(){return m_startChannel;}
@@ -46,7 +46,7 @@ private:
     static void decrypt(char* input, uint16_t length);
     static uint16_t sockConnect(char* out, const char *ip_add, int port, const char *cmd, uint16_t length);
 
-    std::string sendCmd(std::string cmd);
+    std::string sendCmd(std::string cmd, int plug_num = 0);
 
     std::string getInfo();
 

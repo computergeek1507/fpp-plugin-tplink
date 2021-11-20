@@ -55,20 +55,24 @@ public:
     public:
         TPLinkSetSwitchCommand(TPLinkPlugin *p) : Command("TPLink Set Switch"), plugin(p) {
             args.push_back(CommandArg("IP", "string", "IP Address"));
-            args.push_back(CommandArg("state", "bool", "Set Switch On or Off")
-                           .setDefaultValue("true"));
+            args.push_back(CommandArg("state", "bool", "Set Switch On or Off").setDefaultValue("true"));
+            args.push_back(CommandArg("plug", "int", "Set Plug Number, 0 = none").setRange(0, 255).setDefaultValue("0"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
             std::string ipAddress = "";
             bool bulbOn = true;
+            int plug_num = 0;
             if (args.size() >= 1) {
                 ipAddress = args[0];
             }
             if (args.size() >= 2) {
                 bulbOn = args[1]=="true";
             }
-            plugin->SetSwitchState(ipAddress, bulbOn);
+            if (args.size() >= 3) {
+                plug_num = std::stoi(args[2]);
+            }
+            plugin->SetSwitchState(ipAddress, bulbOn, plug_num);
             return std::make_unique<Command::Result>("TPLink Switch Set");
         }
         TPLinkPlugin *plugin;
@@ -272,12 +276,12 @@ public:
         return topics;
     } 
 
-    void SetSwitchState(std::string const& ip, bool state) {
+    void SetSwitchState(std::string const& ip, bool state, int plug_num) {
         TPLinkItem tplinkItem(ip, 1);
         if(state){
-            tplinkItem.setRelayOn();
+            tplinkItem.setRelayOn(plug_num);
         } else{
-            tplinkItem.setRelayOff();
+            tplinkItem.setRelayOff(plug_num);
         }
     }
 

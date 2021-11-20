@@ -150,14 +150,14 @@ std::string TPLinkItem::getInfo() {
     return sendCmd(cmd);
 }
 
-std::string TPLinkItem::setRelayOn() {
+std::string TPLinkItem::setRelayOn(int plug_num) {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
-    return sendCmd(cmd);
+    return sendCmd(cmd,plug_num);
 }
 
-std::string TPLinkItem::setRelayOff() {
+std::string TPLinkItem::setRelayOff(int plug_num) {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":0}}}";
-    return sendCmd(cmd);
+    return sendCmd(cmd,plug_num);
 }
 
 std::string TPLinkItem::setLedOff() {
@@ -197,11 +197,17 @@ std::string TPLinkItem::setLightOff(){
     return sendCmd(cmd);
 }
 
-std::string TPLinkItem::sendCmd(std::string cmd) {
+std::string TPLinkItem::sendCmd(std::string cmd, int plug_num) {
     char encrypted[cmd.length() + 4];
     encryptWithHeader(encrypted, const_cast<char *>(cmd.c_str()), cmd.length());
     char response[2048] = {0};
-    uint16_t length = sockConnect(response, m_ipAddress.c_str(), m_port, encrypted, cmd.length() + 4);
+
+    std::string ipaddress = m_ipAddress;
+    if(plug_num != 0){
+        ipaddress = ipaddress + "/" + std::to_string(plug_num);
+    }
+
+    uint16_t length = sockConnect(response, ipaddress.c_str(), m_port, encrypted, cmd.length() + 4);
     if (length > 0) {
         decrypt(response, length - 4);
     } else {
