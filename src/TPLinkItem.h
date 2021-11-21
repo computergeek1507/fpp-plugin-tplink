@@ -50,6 +50,8 @@ private:
 
     std::string getInfo();
 
+    std::string getDeviceId(int plug_num);
+
     std::string setLedOff();
     std::string setLedOn();
 };

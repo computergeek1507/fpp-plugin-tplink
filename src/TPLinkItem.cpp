@@ -150,6 +150,27 @@ std::string TPLinkItem::getInfo() {
     return sendCmd(cmd);
 }
 
+std::string TPLinkItem::getDeviceId(int plug_num) {
+
+    if(plug_num == 0) {
+        const std::string cmd2 = "{\"system\":{\"get_sysinfo\":{}}}";
+        auto data2 = sendCmd(cmd2);
+
+        Json::Value jsonData2;
+        bool result2 = LoadJsonFromString(data2, jsonData2);
+        return jsonData2["system"]["get_sysinfo"]["deviceId"].asString();
+    }
+    const std::string cmd = "{\"system\":{\"get_sysinfo\":{\"children\":{}}}}";
+    std::string data = sendCmd(cmd);
+    Json::Value jsonData;
+    bool result = LoadJsonFromString(data, jsonData);
+    if(result && jsonData.size() != 0) {
+        return jsonData["system"]["get_sysinfo"]["children"][plug_num - 1]["id"].asString();
+    }
+
+    return std::string("00");
+}
+
 std::string TPLinkItem::setRelayOn(int plug_num) {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
     return sendCmd(cmd,plug_num);
@@ -198,14 +219,18 @@ std::string TPLinkItem::setLightOff(){
 }
 
 std::string TPLinkItem::sendCmd(std::string cmd, int plug_num) {
+
+    std::string ipaddress = m_ipAddress;
+    if(plug_num != 0) {
+        //ipaddress = ipaddress + "/" + std::to_string(plug_num);
+        std::string deviceID = getDeviceId(plug_num);
+        cmd.erase(0, 1);//remove first parentheses
+        cmd = "{\"context\":{\"child_ids\":[\"" + deviceID + "\"]}," + cmd;
+    }
+
     char encrypted[cmd.length() + 4];
     encryptWithHeader(encrypted, const_cast<char *>(cmd.c_str()), cmd.length());
     char response[2048] = {0};
-
-    std::string ipaddress = m_ipAddress;
-    if(plug_num != 0){
-        ipaddress = ipaddress + "/" + std::to_string(plug_num);
-    }
 
     uint16_t length = sockConnect(response, ipaddress.c_str(), m_port, encrypted, cmd.length() + 4);
     if (length > 0) {
