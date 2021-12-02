@@ -161,7 +161,7 @@ $(document).ready(function() {
 $.each(tplinkConfig, function( key, val ) {
     var row = AddTPLinkItem();
     $(row).find('.ipaddress').val(val["ip"]);
-    $(row).find('.startchannel').val(val["startchannel"]);
+    $(row).find('.startchan').val(val["startchannel"]);
 
 });
 </script>
