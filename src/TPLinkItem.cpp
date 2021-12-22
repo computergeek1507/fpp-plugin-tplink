@@ -20,14 +20,11 @@
 #include <ostream>
 
 TPLinkItem::TPLinkItem(std::string const& ip, unsigned int startChannel) :
-    m_startChannel(startChannel),
     m_ipAddress(ip),
-    m_r(0),
-    m_g(0),
-    m_b(0),
-    m_unreachable(false),
+    m_port(9999),
+    m_startChannel(startChannel),
     m_seqCount(0),
-    m_port(9999)
+    m_unreachable(false)
 {
 }
 
@@ -35,80 +32,9 @@ TPLinkItem::~TPLinkItem() {
 
 }
 
-bool TPLinkItem::SendData( unsigned char *data) {
-    try
-    {
-        if(m_unreachable){
-            return false;
-        }
-
-        uint8_t r = data[m_startChannel - 1];
-        uint8_t g = data[m_startChannel];
-        uint8_t b = data[m_startChannel + 1];
-
-        if(r == m_r && g == m_g && b == m_b) {
-            if(m_seqCount < 1201) {
-                ++ m_seqCount;
-                return true;
-            }
-        }
-        m_seqCount=0;
-        m_r = r;
-        m_g = g;
-        m_b = b;
-
-        std::thread t(&TPLinkItem::outputData, this, r, g, b );
-        t.detach();
-        //outputData(r, g, b );
-        return true;
-    }
-    catch(std::exception ex)
-    {
-        m_unreachable = true;
-        LogInfo(VB_PLUGIN, "Error %s \n",ex.what());
-    }
-    return false;
-}
-
-void TPLinkItem::outputData( uint8_t r ,uint8_t g ,uint8_t b ) {
-    setLightOnRGB(r,g,b);
-}
-
-void TPLinkItem::RGBtoHSIV(float fR, float fG, float fB, float& fH, float& fSI, float& fSV,float& fI, float& fV) {
-    float M  = std::max(std::max(fR, fG), fB);
-    float m = std::min(std::min(fR, fG), fB);
-    float c = M-m;
-    fV = M;
-    //fL = (1.0/2.0)*(M+m);
-    fI = (1.0/3.0)*(fR+fG+fB);
-  
-    if(c==0) {
-        fH = 0.0;
-        fSI = 0.0;
-    }
-    else {
-        if(M==fR) {
-            fH = fmod(((fG-fB)/c), 6.0);
-        }
-        else if(M==fG) {
-            fH = (fB-fR)/c + 2.0;
-        }
-        else if(M==fB) {
-            fH = (fR-fG)/c + 4.0;
-        }
-        fH *=60.0;
-        if(fI!=0) {
-            fSI = 1.0 - (m/fI);
-        }
-        else {
-            fSI = 0.0;
-        }
-    }
-
-    fSV = M == 0 ? 0 : (M - m) / M;
-
-    if(fH < 0.0)
-        fH += 360.0;
+std::string TPLinkItem::getInfo() {
+    const std::string cmd = "{\"system\":{\"get_sysinfo\":{}}}";
+    return sendCmd(cmd);
 }
 
 void TPLinkItem::serializeUint32(char (&buf)[4], uint32_t val) {
@@ -145,106 +71,30 @@ void TPLinkItem::encryptWithHeader(char *out, char *data, uint16_t length) {
     std::memcpy(out + 4, data, length);
 }
 
-std::string TPLinkItem::getInfo() {
-    const std::string cmd = "{\"system\":{\"get_sysinfo\":{}}}";
-    return sendCmd(cmd);
-}
+std::string TPLinkItem::sendCmd(std::string const& cmd) {
+    try {
+        char encrypted[cmd.length() + 4];
+        encryptWithHeader(encrypted, const_cast<char *>(cmd.c_str()), cmd.length());
+        char response[2048] = {0};
 
-std::string TPLinkItem::getDeviceId(int plug_num) {
-
-    if(plug_num == 0) {
-        const std::string cmd2 = "{\"system\":{\"get_sysinfo\":{}}}";
-        auto data2 = sendCmd(cmd2);
-
-        Json::Value jsonData2;
-        bool result2 = LoadJsonFromString(data2, jsonData2);
-        return jsonData2["system"]["get_sysinfo"]["deviceId"].asString();
+        uint16_t length = sockConnect(response, m_ipAddress.c_str(), m_port, encrypted, cmd.length() + 4);
+        if (length > 0) {
+            decrypt(response, length - 4);
+        } else {
+            return std::string("");
+        }
+        return std::string(response);
     }
-    const std::string cmd = "{\"system\":{\"get_sysinfo\":{\"children\":{}}}}";
-    std::string data = sendCmd(cmd);
-    Json::Value jsonData;
-    bool result = LoadJsonFromString(data, jsonData);
-    if(result && jsonData.size() != 0) {
-        return jsonData["system"]["get_sysinfo"]["children"][plug_num - 1]["id"].asString();
+    catch(std::exception const& ex) {
+        LogInfo(VB_PLUGIN, "Error %s \n", ex.what());
     }
-
-    return std::string("00");
-}
-
-std::string TPLinkItem::setRelayOn(int plug_num) {
-    const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
-    return sendCmd(cmd,plug_num);
-}
-
-std::string TPLinkItem::setRelayOff(int plug_num) {
-    const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":0}}}";
-    return sendCmd(cmd,plug_num);
-}
-
-std::string TPLinkItem::setLedOff() {
-    const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":1}}}";
-    return sendCmd(cmd);
-}
-
-std::string TPLinkItem::setLedOn() {
-    const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":0}}}";
-    return sendCmd(cmd);
-}
-
-std::string TPLinkItem::setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp, int period) {
-    float h,si,sv,i,v;
-
-    RGBtoHSIV(r/255,g/255,b/255,h,si,sv,i,v);
-    
-    int ih = (h);
-    int isi = (si*100);
-    int isv = (sv*100);
-    int ii = (i*100);
-    int iv = (v*100);
-	return setLightOnHSV(ih, isv, iv, color_Temp, period);
-}
-
-std::string TPLinkItem::setLightOnHSV( int hue, int saturation, int brightness, int color_Temp, int period) {
-    //{"smartlife.iot.smartbulb.lightingservice":{"transition_light_state":{"ignore_default":1,"transition_period":150,"mode":"normal","hue":120,"on_off":1,"saturation":65,"color_temp":0,"brightness":10}}}
-    
-    const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":" + std::to_string(period) + ",\"mode\":\"normal\",\"hue\":" 
-    + std::to_string(hue) + ",\"on_off\":1,\"saturation\":" + std::to_string(saturation) + ",\"color_temp\":" + std::to_string(color_Temp) + ",\"brightness\":" + std::to_string(brightness) + "}}}";
-    return sendCmd(cmd);
-}
-
-std::string TPLinkItem::setLightOff(){
-
-    const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":0,\"mode\":\"normal\",\"on_off\":0}}}";
-    return sendCmd(cmd);
-}
-
-std::string TPLinkItem::sendCmd(std::string cmd, int plug_num) {
-
-    std::string ipaddress = m_ipAddress;
-    if(plug_num != 0) {
-        //ipaddress = ipaddress + "/" + std::to_string(plug_num);
-        std::string deviceID = getDeviceId(plug_num);
-        cmd.erase(0, 1);//remove first parentheses
-        cmd = "{\"context\":{\"child_ids\":[\"" + deviceID + "\"]}," + cmd;
-    }
-
-    char encrypted[cmd.length() + 4];
-    encryptWithHeader(encrypted, const_cast<char *>(cmd.c_str()), cmd.length());
-    char response[2048] = {0};
-
-    uint16_t length = sockConnect(response, ipaddress.c_str(), m_port, encrypted, cmd.length() + 4);
-    if (length > 0) {
-        decrypt(response, length - 4);
-    } else {
-        return std::string("");
-    }
-    return std::string(response);
+    return std::string("");
 }
 
 uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const char *cmd, uint16_t length) {
 
-    struct sockaddr_in address;
-    int sock = 0, valread;
+    //struct sockaddr_in address;
+    int sock = 0;
     struct sockaddr_in serv_addr;
     char buf[2048] = {0};
     //  char buffer[2048] = {0};
@@ -271,7 +121,7 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
     }
     send(sock, cmd, length, 0);
 
-    valread = read(sock, buf, 2048);
+    int valread = read(sock, buf, 2048);
     close(sock);
 
     if (valread == 0) {

@@ -33,6 +33,8 @@
 
 #include "commands/Commands.h"
 
+#include "TPLinkLight.h"
+#include "TPLinkSwitch.h"
 #include "TPLinkItem.h"
 
 class TPLinkPlugin : public FPPPlugin, public httpserver::http_resource {
@@ -41,7 +43,6 @@ private:
     Json::Value config;
 
 public:
-
     TPLinkPlugin() : FPPPlugin("fpp-plugin-tplink") {
         LogInfo(VB_PLUGIN, "Initializing TP-Link Plugin\n");
         readFiles();
@@ -201,7 +202,7 @@ public:
         {
             sendChannelData(seqData);
         }
-        catch(std::exception ex)
+        catch(std::exception const& ex)
         {
             std::cout << ex.what();
         }
@@ -214,16 +215,14 @@ public:
     }
 
     void EnableTPLinkItems() {
-        for(auto & output: _TPLinkOutputs)
-        {
+        for(auto & output: _TPLinkOutputs) {
             output->EnableOutput();
         }
     }
     
 
     void sendChannelData(unsigned char *data) {
-        for(auto & output: _TPLinkOutputs)
-        {
+        for(auto & output: _TPLinkOutputs) {
             output->SendData(data);
         }
     }
@@ -234,7 +233,7 @@ public:
         outfile.open ("/home/fpp/media/config/fpp-plugin-tplink");
 
         if(_TPLinkOutputs.size() ==0) {
-            outfile <<  "nooutputsfound;1";
+            outfile <<  "nooutputsfound;1;null";
             outfile <<  "\n";
         }
 
@@ -242,6 +241,8 @@ public:
             outfile << out->GetIPAddress();
             outfile <<  ";";
             outfile << out->GetStartChannel();
+            outfile <<  ";";
+            outfile << out->GetType();
             outfile <<  "\n";
         }
         outfile.close();
@@ -252,14 +253,23 @@ public:
     {
         //read topic, payload and start channel settings from JSON setting file. 
         if (LoadJsonFromFile("/home/fpp/media/config/plugin.tplink.json", config)) {
-            for (int i = 0; i < config.size(); i++) {
+            for (unsigned int i = 0; i < config.size(); i++) {
                 std::string const ip = config[i]["ip"].asString();
-
-                unsigned int sc =  config[i]["startchannel"].asInt();
+                std::string const devicetype = config[i].get("devicetype","light").asString();
+                unsigned int sc =  config[i].get("startchannel",1).asInt();
                 if(!ip.empty()) {
-                    LogInfo(VB_PLUGIN, "Adding IP %s SC %d\n", ip.c_str(), sc);
-                    std::unique_ptr<TPLinkItem> tplinkItem = std::make_unique<TPLinkItem>(ip, sc);
-                    _TPLinkOutputs.push_back(std::move(tplinkItem));
+                    LogInfo(VB_PLUGIN, "Adding IP %s SC %d Type %s\n", ip.c_str(), sc, devicetype.c_str());
+                    if (devicetype.find("light") != std::string::npos) {
+                        std::unique_ptr<TPLinkLight> tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
+                        _TPLinkOutputs.push_back(std::move(tplinkItem));
+                    } else if (devicetype.find("switch") != std::string::npos) {
+                        int const plugNum =  config[i].get("plugnumber", 0).asInt();
+                        std::unique_ptr<TPLinkSwitch> tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plugNum);
+                        _TPLinkOutputs.push_back(std::move(tplinkItem));
+                    } else {
+                        LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
+                    }
+
                 }
             }
         }
@@ -277,27 +287,27 @@ public:
     } 
 
     void SetSwitchState(std::string const& ip, bool state, int plug_num) {
-        TPLinkItem tplinkItem(ip, 1);
+        TPLinkSwitch tplinkSwitch(ip, 1, plug_num);
         if(state){
-            tplinkItem.setRelayOn(plug_num);
+            tplinkSwitch.setRelayOn();
         } else{
-            tplinkItem.setRelayOff(plug_num);
+            tplinkSwitch.setRelayOff();
         }
     }
 
     void SetLightOnRGB(std::string const& ip, uint8_t r, uint8_t g, uint8_t b, int color_temp, int period ) {
-        TPLinkItem tplinkItem(ip, 1);
-        tplinkItem.setLightOnRGB(r, g, b, color_temp, period);
+        TPLinkLight tplinkLight(ip, 1);
+        tplinkLight.setLightOnRGB(r, g, b, color_temp, period);
     }
 
     void SetLightOnHSV(std::string const& ip, int hue, int sat, int bright, int color_temp, int period) {
-        TPLinkItem tplinkItem(ip, 1);
-        tplinkItem.setLightOnHSV(hue, sat, bright, color_temp, period);
+        TPLinkLight tplinkLight(ip, 1);
+        tplinkLight.setLightOnHSV(hue, sat, bright, color_temp, period);
     }
 
     void SetLightOff(std::string const& ip) {
-        TPLinkItem tplinkItem(ip, 1);
-        tplinkItem.setLightOff();
+        TPLinkLight tplinkLight(ip, 1);
+        tplinkLight.setLightOff();
     }
 };
 
