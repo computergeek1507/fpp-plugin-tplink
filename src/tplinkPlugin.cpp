@@ -258,18 +258,18 @@ public:
                 std::string const devicetype = config[i].get("devicetype","light").asString();
                 unsigned int sc =  config[i].get("startchannel",1).asInt();
                 if(!ip.empty()) {
-                    LogInfo(VB_PLUGIN, "Adding IP %s SC %d Type %s\n", ip.c_str(), sc, devicetype.c_str());
+                    std::unique_ptr<TPLinkItem> tplinkItem;
                     if (devicetype.find("light") != std::string::npos) {
-                        std::unique_ptr<TPLinkLight> tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
-                        _TPLinkOutputs.push_back(std::move(tplinkItem));
+                        tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
                     } else if (devicetype.find("switch") != std::string::npos) {
                         int const plugNum =  config[i].get("plugnumber", 0).asInt();
-                        std::unique_ptr<TPLinkSwitch> tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plugNum);
-                        _TPLinkOutputs.push_back(std::move(tplinkItem));
+                        tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plugNum);
                     } else {
                         LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
+                        tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
                     }
-
+                    LogInfo(VB_PLUGIN, "Added %s\n", tplinkItem->GetConfigString().c_str());
+                    _TPLinkOutputs.push_back(std::move(tplinkItem));
                 }
             }
         }

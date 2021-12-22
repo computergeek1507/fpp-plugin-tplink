@@ -31,6 +31,12 @@ TPLinkSwitch::~TPLinkSwitch() {
 
 }
 
+std::string TPLinkSwitch::GetConfigString() const
+{
+    return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType() + 
+    " Plug Number: " + std::to_string(m_plug_num) + " Device ID: " + m_deviceId;
+}
+
 bool TPLinkSwitch::SendData( unsigned char *data) {
     try
     {
@@ -87,9 +93,7 @@ std::string TPLinkSwitch::getDeviceId(int plug_num) {
                 LogInfo(VB_PLUGIN, "Invalid JSON returned %s\n", data2.c_str());
                 return "";
             }
-            auto const deviceID = jsonData2["system"]["get_sysinfo"]["deviceId"].asString();
-            LogInfo(VB_PLUGIN, "Got Device ID: %s \n", deviceID.c_str());
-            return deviceID;
+            return jsonData2["system"]["get_sysinfo"]["deviceId"].asString();
         }
         const std::string cmd = "{\"system\":{\"get_sysinfo\":{\"children\":{}}}}";
         std::string data = sendCmd(cmd);
@@ -100,9 +104,7 @@ std::string TPLinkSwitch::getDeviceId(int plug_num) {
         Json::Value jsonData;
         bool result = LoadJsonFromString(data, jsonData);
         if(result && jsonData.size() != 0) {
-            auto const deviceID = jsonData["system"]["get_sysinfo"]["children"][plug_num - 1]["id"].asString();
-            LogInfo(VB_PLUGIN, "Got Device ID: %s \n", deviceID.c_str());
-            return deviceID;
+            return jsonData["system"]["get_sysinfo"]["children"][plug_num - 1]["id"].asString();
         }
     }
     catch(std::exception const& ex) {

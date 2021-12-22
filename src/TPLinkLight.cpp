@@ -31,6 +31,10 @@ TPLinkLight::~TPLinkLight() {
 
 }
 
+std::string TPLinkLight::GetConfigString() const {
+    return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType();
+}
+
 bool TPLinkLight::SendData( unsigned char *data) {
     try
     {

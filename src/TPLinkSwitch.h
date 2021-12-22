@@ -18,6 +18,7 @@ public:
     std::string setLedOff();
 
     std::string GetType() const override {return "Switch";}
+    std::string GetConfigString() const override;
 
 private:
     uint8_t m_w;
