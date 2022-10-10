@@ -30,7 +30,7 @@
 #include "MultiSync.h"
 
 #if __has_include("channeloutput/ChannelOutputSetup.h")
-#  include "channeloutput/ChannelOutputSetup.h"
+#include "channeloutput/ChannelOutputSetup.h"
 #elif __has_include("channeloutput/channeloutput.h")
 #include "channeloutput/channeloutput.h"
 #endif
