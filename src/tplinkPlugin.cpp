@@ -1,3 +1,4 @@
+#include "fpp-pch.h"
 
 #include <fstream>
 #include <sstream>
@@ -26,8 +27,13 @@
 #include "Plugin.h"
 #include "Plugins.h"
 #include "log.h"
-#include "channeloutput/channeloutput.h"
 #include "MultiSync.h"
+
+#if __has_include("channeloutput/ChannelOutputSetup.h")
+#  include "channeloutput/ChannelOutputSetup.h"
+#elif __has_include("channeloutput/channeloutput.h")
+#include "channeloutput/channeloutput.h"
+#endif
 
 #include "fppversion_defines.h"
 
@@ -252,7 +258,8 @@ public:
     void readFiles()
     {
         //read topic, payload and start channel settings from JSON setting file. 
-        if (LoadJsonFromFile("/home/fpp/media/config/plugin.tplink.json", config)) {
+        std::string configLocation = FPP_DIR_CONFIG("/plugin.tplink.json");
+        if (LoadJsonFromFile(configLocation, config)) {
             for (unsigned int i = 0; i < config.size(); i++) {
                 std::string const ip = config[i]["ip"].asString();
                 std::string const devicetype = config[i].get("devicetype","light").asString();

@@ -1,5 +1,9 @@
 #include "TPLinkSwitch.h"
 
+#include "fpp-pch.h"
+#include "common.h"
+#include "settings.h"
+
 #include <stdlib.h>
 #include <cstdint>
 #include <thread>
