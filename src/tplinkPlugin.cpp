@@ -236,7 +236,11 @@ public:
     void saveDataToFile()
     {
         std::ofstream outfile;
+#if FPP_MAJOR_VERSION < 6
         outfile.open ("/home/fpp/media/config/fpp-plugin-tplink");
+#else
+        outfile.open (FPP_DIR_CONFIG("/fpp-plugin-tplink"));
+#endif
 
         if(_TPLinkOutputs.size() ==0) {
             outfile <<  "nooutputsfound;1;null";
@@ -258,7 +262,11 @@ public:
     void readFiles()
     {
         //read topic, payload and start channel settings from JSON setting file. 
+#if FPP_MAJOR_VERSION < 6
+        std::string configLocation = ("/home/fpp/media/config/plugin.tplink.json");
+#else
         std::string configLocation = FPP_DIR_CONFIG("/plugin.tplink.json");
+#endif
         if (LoadJsonFromFile(configLocation, config)) {
             for (unsigned int i = 0; i < config.size(); i++) {
                 std::string const ip = config[i]["ip"].asString();
