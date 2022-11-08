@@ -16,7 +16,7 @@ public:
     std::string GetIPAddress() const { return m_ipAddress; }
     unsigned int GetStartChannel() const { return m_startChannel; }
 
-    void EnableOutput() { m_unreachable = false; }
+    void EnableOutput() { m_unreachable = false; m_issending = false; }
 
     virtual bool SendData(unsigned char *data) = 0;
 
@@ -32,6 +32,7 @@ protected:
     unsigned int m_seqCount;
 
     std::atomic<bool> m_unreachable;
+    std::atomic<bool> m_issending;
 
     std::string sendCmd(std::string const& cmd);
 
@@ -40,6 +41,6 @@ private:
     static void encrypt(char *data, uint16_t length);
     static void encryptWithHeader(char *out, char *data, uint16_t length);
     static void decrypt(char* input, uint16_t length);
-    static uint16_t sockConnect(char* out, const char *ip_add, int port, const char *cmd, uint16_t length);
+    uint16_t sockConnect(char* out, const char *ip_add, int port, const char *cmd, uint16_t length);
 
 };

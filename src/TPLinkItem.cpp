@@ -24,7 +24,8 @@ TPLinkItem::TPLinkItem(std::string const& ip, unsigned int startChannel) :
     m_port(9999),
     m_startChannel(startChannel),
     m_seqCount(0),
-    m_unreachable(false)
+    m_unreachable(false),
+    m_issending(false)
 {
 }
 
@@ -92,7 +93,11 @@ std::string TPLinkItem::sendCmd(std::string const& cmd) {
 }
 
 uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const char *cmd, uint16_t length) {
-
+    if(m_issending)
+    {
+        return 0;
+    }
+    m_issending = true;
     //struct sockaddr_in address;
     int sock = 0;
     struct sockaddr_in serv_addr;
@@ -101,6 +106,7 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
     //    char buffer[2048] = {0};
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
+        m_issending = false;
         return 0;
     }
 
@@ -112,11 +118,13 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
     // Convert IPv4 and IPv6 addresses from text to binary form
     if (inet_pton(AF_INET, ip_add, &serv_addr.sin_addr) <= 0) {
         printf("\nInvalid address/ Address not supported \n");
+        m_issending = false;
         return 0;
     }
 
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         printf("\nConnection Failed \n");
+        m_issending = false;
         return 0;
     }
     send(sock, cmd, length, 0);
@@ -131,7 +139,7 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
         // valread - 3 leaves 1 byte for terminating null character
         strncpy(out, buf + 4, valread - 3);
     }
-
+    m_issending = false;
     return valread;
 }
 
