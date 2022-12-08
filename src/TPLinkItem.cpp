@@ -7,6 +7,7 @@
 
 #include <arpa/inet.h>  // for inet_pton
 #include <netinet/in.h> // for sockaddr_in, htons
+#include <netinet/tcp.h>
 #include <stdint.h>     // for uint16_t, uint8_t, uint32_t
 #include <stdio.h>      // for printf
 #include <sys/socket.h> // for AF_INET, connect, send, socket, SOCK_STREAM
@@ -122,6 +123,8 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
         return 0;
     }
 
+    int synRetries = 2; // Send a total of 3 SYN packets => Timeout ~7s
+    setsockopt(sock, IPPROTO_TCP, TCP_SYNCNT, &synRetries, sizeof(synRetries));
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         printf("\nConnection Failed \n");
         m_issending = false;
