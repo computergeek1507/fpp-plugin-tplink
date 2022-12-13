@@ -63,7 +63,7 @@ public:
         TPLinkSetSwitchCommand(TPLinkPlugin *p) : Command("TPLink Set Switch"), plugin(p) {
             args.push_back(CommandArg("IP", "string", "IP Address"));
             args.push_back(CommandArg("state", "bool", "Set Switch On or Off").setDefaultValue("true"));
-            args.push_back(CommandArg("plug", "int", "Set Plug Number, 0 = all").setRange(0, 255).setDefaultValue("0"));
+            args.push_back(CommandArg("plug", "int", "Set Plug Number").setRange(0, 255).setDefaultValue("0"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
