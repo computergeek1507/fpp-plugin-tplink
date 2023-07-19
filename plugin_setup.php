@@ -92,7 +92,7 @@ function SaveTPLinkItems() {
     var data = JSON.stringify(tplinkConfig);
     $.ajax({
         type: "POST",
-        url: 'fppjson.php?command=setPluginJSON&plugin=tplink',
+	url: 'api/configfile/plugin.tplink.json',
         dataType: 'json',
         async: false,
         data: data,
