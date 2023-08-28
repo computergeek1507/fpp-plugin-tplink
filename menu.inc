@@ -23,6 +23,12 @@ $menuEntries = Array(
 		'type' => 'help',
 		'page' => 'about.php',
 		'wrap' => 1
+	),
+    Array(
+		'text' => 'TPLink - Discovery',
+		'type' => 'help',
+		'page' => 'discovery.php',
+		'wrap' => 1
 	)
 );
 

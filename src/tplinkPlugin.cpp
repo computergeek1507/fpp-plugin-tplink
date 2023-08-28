@@ -5,14 +5,11 @@
 #include <string>
 #include <algorithm>
 #include <cstring>
-
+#include <execution>
 #include <istream>
 #include <ostream>
-
-#include <iostream> 
-
-#include <thread> 
-
+#include <iostream>
+#include <thread>
 #include <vector>
 
 #include <unistd.h>
@@ -228,9 +225,13 @@ public:
     
 
     void sendChannelData(unsigned char *data) {
-        for(auto & output: _TPLinkOutputs) {
+        //for(auto & output: _TPLinkOutputs) {
+        //    output->SendData(data);
+        //}
+        std::for_each(std::execution::par, std::begin(_TPLinkOutputs), std::end(_TPLinkOutputs), [data](auto& output) {
             output->SendData(data);
-        }
+        });
+
     }
     
     void saveDataToFile()
