@@ -155,7 +155,7 @@ $(document).ready(function() {
 
 <div class='fppTableWrapper fppTableWrapperAsTable'>
 <div class='fppTableContents'>
-<table class="fppTable" id="tplinkTable"  width='100%'>
+<table class="fppSelectableRowTable" id="tplinkTable"  width='100%'>
 <thead><tr class="fppTableHeader"><th>#</th><th></th><th>IP</th><th>Start Chan</th><th>Device Type</th><th>Plug ID</th></tr></thead>
 <tbody id='tplinkTableBody'>
 </tbody>
