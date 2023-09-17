@@ -132,7 +132,19 @@ uint16_t TPLinkItem::sockConnect(char *out, const char *ip_add, int port, const 
     }
     send(sock, cmd, length, 0);
 
-    int valread = read(sock, buf, 2048);
+    int br = recv(sock, buf, 2048, 0);
+    int dataLen = 0;
+    int valread = 0;
+    if (br > 4) {
+        dataLen = ((int)buf[2] << 8) + (int)buf[3];
+        valread = br;
+        while (br >= 0 && (valread < (dataLen + 4))) {
+            br = recv(sock, buf + valread, 2048 - valread, 0);
+            if (br > 0) {
+                valread += br;
+            }
+        }
+    }
     close(sock);
 
     if (valread == 0) {
