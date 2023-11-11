@@ -46,7 +46,7 @@ function AddTPLinkItem(type) {
     }
     html += "'><td class='colNumber rowNumber'>" + id + ".</td><td><span style='display: none;' class='uniqueId'>" + uniqueId + "</span></td>";
     html += "<td><input type='text' minlength='7' maxlength='15' size='15' pattern='^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$' class='ipaddress' /></td>";
-    html += "<td><input type='number' value='1' min='1' max='10000000' class='startchan' />";
+    html += "<td><input type='number' value='0' min='0' max='10000000' class='startchan' />";
     html += "<td><select class='devicetype'>";
     html += "<option value='light'";
     if(type == 'light') {html += " selected ";}

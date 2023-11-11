@@ -48,6 +48,10 @@ bool TPLinkSwitch::SendData( unsigned char *data) {
             return false;
         }
 
+        if(m_startChannel == 0){
+            return false;
+        }
+
         uint8_t w = data[m_startChannel - 1];
 
         if(w == m_w ) {

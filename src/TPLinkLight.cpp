@@ -42,6 +42,10 @@ bool TPLinkLight::SendData( unsigned char *data) {
             return false;
         }
 
+        if(m_startChannel == 0){
+            return false;
+        }
+
         uint8_t r = data[m_startChannel - 1];
         uint8_t g = data[m_startChannel];
         uint8_t b = data[m_startChannel + 1];
