@@ -40,6 +40,8 @@
 #include "TPLinkSwitch.h"
 #include "TPLinkItem.h"
 
+using namespace std::chrono_literals;
+
 class TPLinkPlugin : public FPPPlugin, public httpserver::http_resource {
 private:
     std::vector<std::unique_ptr <TPLinkItem>> _TPLinkOutputs;
@@ -78,6 +80,35 @@ public:
             }
             plugin->SetSwitchState(ipAddress, bulbOn, plug_num);
             return std::make_unique<Command::Result>("TPLink Switch Set");
+        }
+        TPLinkPlugin *plugin;
+    };
+
+     class TPLinkToggleSwitchCommand : public Command {
+    public:
+        TPLinkToggleSwitchCommand(TPLinkPlugin *p) : Command("TPLink Toggle Switch"), plugin(p) {
+            args.push_back(CommandArg("IP", "string", "IP Address"));
+            args.push_back(CommandArg("delay", "int", "Delay MS").setRange(1, 10000).setDefaultValue("100"));
+            args.push_back(CommandArg("plug", "int", "Set Plug Number").setRange(0, 255).setDefaultValue("0"));
+        }
+        
+        virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
+            std::string ipAddress = "";
+            std::chrono::milliseconds delay = 10ms;
+            int plug_num = 0;
+            if (args.size() >= 1) {
+                ipAddress = args[0];
+            }
+            if (args.size() >= 2) {
+                 delay = std::chrono::milliseconds(std::stoi(args[1]));
+            }
+            if (args.size() >= 3) {
+                plug_num = std::stoi(args[2]);
+            }
+            plugin->SetSwitchState(ipAddress, false, plug_num);
+            std::this_thread::sleep_for(delay);
+            plugin->SetSwitchState(ipAddress, true, plug_num);
+            return std::make_unique<Command::Result>("TPLink Switch Toggle");
         }
         TPLinkPlugin *plugin;
     };
@@ -297,8 +328,28 @@ public:
         TPLinkPlugin *plugin;
     };
 
+    class TPLinkAllSwitchesToggleCommand : public Command {
+    public:
+        TPLinkAllSwitchesToggleCommand(TPLinkPlugin *p) : Command("TPLink All Switches Toggle"), plugin(p) {
+            args.push_back(CommandArg("delay", "int", "Delay MS").setRange(1, 10000).setDefaultValue("100"));
+        }
+        
+        virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
+            std::chrono::milliseconds delay = 10ms;
+            if (args.size() >= 1) {
+                delay = std::chrono::milliseconds(std::stoi(args[0]));
+            }
+            plugin->turnSwitchesOff();
+            std::this_thread::sleep_for(delay);
+            plugin->turnSwitchesOn();
+            return std::make_unique<Command::Result>("TPLink All Switches Toggle");
+        }
+        TPLinkPlugin *plugin;
+    };
+
     void registerCommand() {
         CommandManager::INSTANCE.addCommand(new TPLinkSetSwitchCommand(this));
+        CommandManager::INSTANCE.addCommand(new TPLinkToggleSwitchCommand(this));
         CommandManager::INSTANCE.addCommand(new TPLinkSetLightRGBCommand(this));
         CommandManager::INSTANCE.addCommand(new TPLinkSetLightHSVCommand(this));
         CommandManager::INSTANCE.addCommand(new TPLinkSetLightOffCommand(this));
@@ -307,6 +358,7 @@ public:
         CommandManager::INSTANCE.addCommand(new TPLinkAllLightsRGBCommand(this));
         CommandManager::INSTANCE.addCommand(new TPLinkAllLightsHSVCommand(this));
         CommandManager::INSTANCE.addCommand(new TPLinkAllLightsOffCommand(this));
+        CommandManager::INSTANCE.addCommand(new TPLinkAllSwitchesToggleCommand(this));
     }
 
     virtual const std::shared_ptr<httpserver::http_response> render_GET(const httpserver::http_request &req) override {
