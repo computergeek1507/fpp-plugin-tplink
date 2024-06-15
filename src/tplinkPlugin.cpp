@@ -361,7 +361,7 @@ public:
         CommandManager::INSTANCE.addCommand(new TPLinkAllSwitchesToggleCommand(this));
     }
 
-    virtual const std::shared_ptr<httpserver::http_response> render_GET(const httpserver::http_request &req) override {
+    virtual HTTP_RESPONSE_CONST std::shared_ptr<httpserver::http_response> render_GET(const httpserver::http_request &req) override {
         std::string v = getTopics();
         return std::shared_ptr<httpserver::http_response>(new httpserver::string_response(v, 200));
     }
