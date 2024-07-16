@@ -4,7 +4,7 @@ BASEDIR=$(dirname $0)
 cd $BASEDIR
 cd ..
 
-sudo apt install python3.11-venv
+sudo apt install python3.11-venv -y
 
 python3 -m venv --system-site-packages env
 
