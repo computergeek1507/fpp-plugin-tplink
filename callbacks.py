@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!env/bin python3
 
 import time
 import os
