@@ -366,11 +366,7 @@ public:
         return std::shared_ptr<httpserver::http_response>(new httpserver::string_response(v, 200));
     }
     
-#if FPP_MAJOR_VERSION < 4 || FPP_MINOR_VERSION < 1
-    virtual void modifyChannelData(int ms, uint8_t *seqData) override {
-#else
     virtual void modifySequenceData(int ms, uint8_t *seqData) override {
-#endif
         try
         {
             sendChannelData(seqData);
