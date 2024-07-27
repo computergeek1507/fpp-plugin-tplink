@@ -7,7 +7,7 @@
         <b>TPLink Plugin Discovery:</b>
         <b></b>
 <body>
-<?php echo nl2br(shell_exec('kasa')); ?>
+<?php echo nl2br(shell_exec('/home/fpp/media/plugins/fpp-plugin-tplink/env/bin/kasa')); ?>
 </body>
       </div>
     </div>
