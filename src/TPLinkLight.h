@@ -1,8 +1,9 @@
 #pragma once
 
 #include "TPLinkItem.h"
+#include "BaseLight.h"
 
-class TPLinkLight : public TPLinkItem{
+class TPLinkLight : public TPLinkItem, public BaseLight{
 public:
     TPLinkLight(std::string const& ip, unsigned int startChannel );
     virtual ~TPLinkLight();

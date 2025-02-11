@@ -24,8 +24,7 @@
 #include <ostream>
 
 TPLinkSwitch::TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num) :
-    TPLinkItem(ip,startChannel),
-    m_w(0),
+BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseSwitch(ip,startChannel),
     m_plug_num(plug_num)
 {
     m_deviceId = getDeviceId(plug_num);
@@ -40,50 +39,6 @@ std::string TPLinkSwitch::GetConfigString() const
     return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType() + 
     " Plug Number: " + std::to_string(m_plug_num) + " Device ID: " + m_deviceId;
 }
-
-bool TPLinkSwitch::SendData( unsigned char *data) {
-    try
-    {
-        if(m_unreachable){
-            return false;
-        }
-
-        if(m_startChannel == 0){
-            return false;
-        }
-
-        uint8_t w = data[m_startChannel - 1];
-
-        if(w == m_w ) {
-            if(m_seqCount < 1201) {
-                ++ m_seqCount;
-                return true;
-            }
-        }
-        m_seqCount=0;
-        m_w = w;
-
-        std::thread t(&TPLinkSwitch::outputData, this, w );
-        t.detach();
-        //outputData(w );
-        return true;
-    }
-    catch(std::exception const& ex)
-    {
-        m_unreachable = true;
-        LogInfo(VB_PLUGIN, "Error %s \n",ex.what());
-    }
-    return false;
-}
-
-void TPLinkSwitch::outputData( uint8_t w ) {
-    if(w >= 127){
-        setRelayOn();
-    } else {
-        setRelayOff();
-    }
-}
-
 
 std::string TPLinkSwitch::getDeviceId(int plug_num) {
 

@@ -40,11 +40,15 @@
 #include "TPLinkSwitch.h"
 #include "TPLinkItem.h"
 
+#include "BaseLight.h"
+#include "BaseSwitch.h"
+#include "BaseItem.h"
+
 using namespace std::chrono_literals;
 
 class TPLinkPlugin : public FPPPlugin, public httpserver::http_resource {
 private:
-    std::vector<std::unique_ptr <TPLinkItem>> _TPLinkOutputs;
+    std::vector<std::unique_ptr <BaseItem>> _TPLinkOutputs;
     Json::Value config;
 
 public:
@@ -490,7 +494,7 @@ public:
                 std::string const devicetype = config[i].get("devicetype","light").asString();
                 unsigned int sc =  config[i].get("startchannel",1).asInt();
                 if(!ip.empty()) {
-                    std::unique_ptr<TPLinkItem> tplinkItem;
+                    std::unique_ptr<BaseItem> tplinkItem;
                     if (devicetype.find("light") != std::string::npos) {
                         tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
                     } else if (devicetype.find("switch") != std::string::npos) {
