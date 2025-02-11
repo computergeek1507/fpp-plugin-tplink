@@ -76,24 +76,24 @@ std::string TPLinkSwitch::getDeviceId(int plug_num) {
     return "";
 }
 
-std::string TPLinkSwitch::setRelayOn() {
+bool TPLinkSwitch::setRelayOn() {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
-    return sendCmd(appendPlugData(cmd));
+    return !sendCmd(appendPlugData(cmd)).empty();
 }
 
-std::string TPLinkSwitch::setRelayOff() {
+bool TPLinkSwitch::setRelayOff() {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":0}}}";
-    return sendCmd(appendPlugData(cmd));
+    return !sendCmd(appendPlugData(cmd)).empty();
 }
 
-std::string TPLinkSwitch::setLedOff() {
+bool TPLinkSwitch::setLedOff() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":1}}}";
-    return sendCmd(appendPlugData(cmd));
+    return !sendCmd(appendPlugData(cmd)).empty();
 }
 
-std::string TPLinkSwitch::setLedOn() {
+bool TPLinkSwitch::setLedOn() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":0}}}";
-    return sendCmd(appendPlugData(cmd));
+    return !sendCmd(appendPlugData(cmd)).empty();
 }
 
 

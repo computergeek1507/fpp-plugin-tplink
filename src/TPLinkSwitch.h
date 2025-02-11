@@ -9,13 +9,13 @@ public:
     TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num );
     virtual ~TPLinkSwitch();
 
-    std::string setRelayOn() override;
-    std::string setRelayOff()override;
+    bool setRelayOn() override;
+    bool setRelayOff() override;
 
-    std::string setLedOn() override;
-    std::string setLedOff()override;
+    bool setLedOn() override;
+    bool setLedOff() override;
 
-    std::string GetType() const override {return "Switch";}
+    std::string GetType() const override {return "TPLinkSwitch";}
     std::string GetConfigString() const override;
 
 private:

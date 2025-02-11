@@ -1,4 +1,4 @@
-#include "TPLinkLight.h"
+#include "GoveeLight.h"
 
 #include <stdlib.h>
 #include <cstdint>
@@ -19,35 +19,38 @@
 #include <istream>
 #include <ostream>
 
-TPLinkLight::TPLinkLight(std::string const& ip, unsigned int startChannel):
- BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseLight(ip,startChannel)
+GoveeLight::GoveeLight(std::string const& ip, unsigned int startChannel):
+ BaseItem(ip,startChannel), BaseLight(ip,startChannel), m_curl(NULL)
+ {
+     m_curl = curl_easy_init();
+ }
 
-{
+GoveeLight::~GoveeLight() {
+    if (m_curl) {
+        curl_easy_cleanup(m_curl);
+    }
 }
 
-TPLinkLight::~TPLinkLight() {
-
-}
-
-std::string TPLinkLight::GetConfigString() const {
+std::string GoveeLight::GetConfigString() const {
     return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType();
 }
 
-bool TPLinkLight::setLightOnHSV( int hue, int saturation, int brightness, int color_Temp, int period) {
+bool GoveeLight::setLightOnHSV( int hue, int saturation, int brightness, int color_Temp, int period) {
     //{"smartlife.iot.smartbulb.lightingservice":{"transition_light_state":{"ignore_default":1,"transition_period":150,"mode":"normal","hue":120,"on_off":1,"saturation":65,"color_temp":0,"brightness":10}}}
     
     const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":" + std::to_string(period) + ",\"mode\":\"normal\",\"hue\":" 
     + std::to_string(hue) + ",\"on_off\":1,\"saturation\":" + std::to_string(saturation) + ",\"color_temp\":" + std::to_string(color_Temp) + ",\"brightness\":" + std::to_string(brightness) + "}}}";
-    return !sendCmd(cmd).empty();
+    return sendCmd(cmd);
 }
 
-bool TPLinkLight::setLightOff(){
+bool GoveeLight::setLightOff(){
 
     const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":0,\"mode\":\"normal\",\"on_off\":0}}}";
-    return !sendCmd(cmd).empty();
+    return sendCmd(cmd);
 }
 
-bool TPLinkLight::setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp, int period) {
+
+bool GoveeLight::setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp, int period) {
     float h,si,sv,i,v;
 
     RGBtoHSIV(r/255,g/255,b/255,h,si,sv,i,v);

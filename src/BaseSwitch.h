@@ -10,11 +10,11 @@ public:
 
     bool SendData( unsigned char *data) override;
 
-    virtual std::string setRelayOn()=0;
-    virtual std::string setRelayOff()=0;
+    virtual bool setRelayOn() = 0;
+    virtual bool setRelayOff() = 0;
 
-    virtual std::string setLedOn()=0;
-    virtual std::string setLedOff()=0;
+    virtual bool setLedOn() = 0;
+    virtual bool setLedOff() = 0;
 
 protected:
     uint8_t m_w;

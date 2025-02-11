@@ -16,7 +16,7 @@ public:
     std::string GetIPAddress() const { return m_ipAddress; }
     unsigned int GetStartChannel() const { return m_startChannel; }
 
-    void EnableOutput() { m_unreachable = false; m_issending = false; }
+    virtual void EnableOutput() { m_unreachable = false; m_issending = false; }
 
     virtual bool SendData(unsigned char *data) = 0;
 
