@@ -1,4 +1,4 @@
-#include "TasmotaLight.h"
+#include "TasmotaSwitch.h"
 
 #include <stdlib.h>
 #include <cstdint>
@@ -19,40 +19,38 @@
 #include <istream>
 #include <ostream>
 
-TasmotaLight::TasmotaLight(std::string const& ip, unsigned int startChannel):
- BaseItem(ip,startChannel), BaseLight(ip,startChannel), m_curl(NULL)
+TasmotaSwitch::TasmotaSwitch(std::string const& ip, unsigned int startChannel, int plug_num):
+ BaseItem(ip,startChannel), BaseSwitch(ip,startChannel,plug_num), m_curl(NULL)
 {
     m_curl = curl_easy_init();
 }
 
-TasmotaLight::~TasmotaLight() {
+TasmotaSwitch::~TasmotaSwitch() {
     if (m_curl) {
         curl_easy_cleanup(m_curl);
     }
 }
 
-std::string TasmotaLight::GetConfigString() const {
+std::string TasmotaSwitch::GetConfigString() const {
     return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType();
 }
 
-bool TasmotaLight::setLightOnHSV( int hue, int saturation, int brightness, int color_Temp, int period) {
-    std::string repURL = "http://" + m_ipAddress + "/cm?cmnd=HSBColor%20" + std::to_string(hue)
-    + "," + std::to_string(saturation) + ","  + std::to_string(brightness);
+bool TasmotaSwitch::setRelayOn() {
+    std::string repURL = "http://" + m_ipAddress + "/cm?cmnd=Power%20On";
     curl_easy_setopt(m_curl, CURLOPT_TIMEOUT, 1L);
     curl_easy_setopt(m_curl, CURLOPT_URL, repURL.c_str());
 
     CURLcode status = curl_easy_perform(m_curl);
     if (status != CURLE_OK) {
         m_unreachable = true;
-        std::cout << "failed to send color command\n";
+        std::cout << "failed to send on command\n";
         return false;
     }
-    //HSBColor
+    m_unreachable = false;
     return true;
 }
 
-bool TasmotaLight::setLightOff(){
-
+bool TasmotaSwitch::setRelayOff() {
     std::string repURL = "http://" + m_ipAddress + "/cm?cmnd=Power%20Off";
     curl_easy_setopt(m_curl, CURLOPT_TIMEOUT, 1L);
     curl_easy_setopt(m_curl, CURLOPT_URL, repURL.c_str());
@@ -67,18 +65,34 @@ bool TasmotaLight::setLightOff(){
     return true;
 }
 
-
-bool TasmotaLight::setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp, int period) {
-    std::string repURL = "http://" + m_ipAddress + "/cm?cmnd=Color%20" + std::to_string(r)
-    + "," + std::to_string(g) + ","  + std::to_string(b);
+bool TasmotaSwitch::setLedOff() {
+    std::string repURL = "http://" + m_ipAddress + "/cm?cmnd=LedPower%20Off";
     curl_easy_setopt(m_curl, CURLOPT_TIMEOUT, 1L);
     curl_easy_setopt(m_curl, CURLOPT_URL, repURL.c_str());
 
     CURLcode status = curl_easy_perform(m_curl);
     if (status != CURLE_OK) {
         m_unreachable = true;
-        std::cout << "failed to send color command\n";
+        std::cout << "failed to send on command\n";
         return false;
     }
+    m_unreachable = false;
     return true;
 }
+
+bool TasmotaSwitch::setLedOn() {
+    std::string repURL = "http://" + m_ipAddress + "/cm?cmnd=LedPower%20On";
+    curl_easy_setopt(m_curl, CURLOPT_TIMEOUT, 1L);
+    curl_easy_setopt(m_curl, CURLOPT_URL, repURL.c_str());
+
+    CURLcode status = curl_easy_perform(m_curl);
+    if (status != CURLE_OK) {
+        m_unreachable = true;
+        std::cout << "failed to send on command\n";
+        return false;
+    }
+    m_unreachable = false;
+    return true;
+}
+
+

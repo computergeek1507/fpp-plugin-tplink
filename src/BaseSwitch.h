@@ -5,7 +5,7 @@
 
 class BaseSwitch : virtual public BaseItem { 
 public:
-    BaseSwitch(std::string const& ip, unsigned int startChannel  );
+    BaseSwitch(std::string const& ip, unsigned int startChannel , int plug_num );
     virtual ~BaseSwitch();
 
     bool SendData( unsigned char *data) override;
@@ -18,6 +18,7 @@ public:
 
 protected:
     uint8_t m_w;
+    int m_plug_num;
 
     virtual void outputData( uint8_t w );
 

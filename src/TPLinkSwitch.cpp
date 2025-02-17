@@ -24,8 +24,7 @@
 #include <ostream>
 
 TPLinkSwitch::TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num) :
-BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseSwitch(ip,startChannel),
-    m_plug_num(plug_num)
+BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseSwitch(ip,startChannel,plug_num)
 {
     m_deviceId = getDeviceId(plug_num);
 }

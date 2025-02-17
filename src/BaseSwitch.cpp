@@ -5,8 +5,9 @@
 
 #include <thread>
 
-BaseSwitch::BaseSwitch(std::string const& ip, unsigned int startChannel) :
+BaseSwitch::BaseSwitch(std::string const& ip, unsigned int startChannel, int plug_num) :
 BaseItem(ip,startChannel),
+m_plug_num(plug_num),
 m_w(0)
 {
 }

@@ -2,9 +2,7 @@
 
 #include "BaseLight.h"
 
-#include <curl/curl.h>
-
-class GoveeLight : public BaseLight{
+class GoveeLight : public BaseLight {
 public:
     GoveeLight(std::string const& ip, unsigned int startChannel );
     virtual ~GoveeLight();
@@ -19,8 +17,9 @@ public:
     bool setLightOff();
 
 private:
-    CURL *m_curl;
-
     void outputData( uint8_t r ,uint8_t g ,uint8_t b );
     void RGBtoHSIV(float fR, float fG, float fB, float& fH, float& fSI, float& fSV,float& fI, float& fV);
+
+    std::string sendCmd(std::string const& cmd);
+    uint16_t sockConnect(char* out, const char *ip_add, int port, const char *cmd, uint16_t length);
 };

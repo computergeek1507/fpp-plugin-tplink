@@ -19,7 +19,7 @@ public:
     std::string GetConfigString() const override;
 
 private:
-    int m_plug_num;
+    //int m_plug_num;
     std::string m_deviceId;
 
     std::string getDeviceId(int plug_num);

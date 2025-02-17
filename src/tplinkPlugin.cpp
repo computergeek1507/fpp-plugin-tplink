@@ -44,6 +44,10 @@
 #include "BaseSwitch.h"
 #include "BaseItem.h"
 
+#include "GoveeLight.h"
+#include "TasmotaLight.h"
+#include "TasmotaSwitch.h"
+
 using namespace std::chrono_literals;
 
 class TPLinkPlugin : public FPPPlugin, public httpserver::http_resource {
@@ -500,6 +504,13 @@ public:
                     } else if (devicetype.find("switch") != std::string::npos) {
                         int const plugNum =  config[i].get("plugnumber", 0).asInt();
                         tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plugNum);
+                    } else if (devicetype.find("goveelight") != std::string::npos) {
+                        tplinkItem = std::make_unique<GoveeLight>(ip, sc);
+                    } else if (devicetype.find("tasmotalight") != std::string::npos) {
+                        tplinkItem = std::make_unique<TasmotaLight>(ip, sc);
+                    } else if (devicetype.find("tasmotaswitch") != std::string::npos) {
+                        int const plugNum =  config[i].get("plugnumber", 0).asInt();
+                        tplinkItem = std::make_unique<TasmotaSwitch>(ip, sc, plugNum);
                     } else {
                         LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
                         tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
@@ -526,7 +537,7 @@ public:
 
         auto SetSwState = [state,plug_num](std::string const& __ip)
         {
-            TPLinkSwitch tplinkSwitch(__ip, 1, plug_num);
+            BaseSwitch tplinkSwitch(__ip, 1, plug_num);
             if(state){
                 tplinkSwitch.setRelayOn();
             } else{
@@ -546,7 +557,7 @@ public:
     void SetLightOnRGB(std::string const& ip, uint8_t r, uint8_t g, uint8_t b, int color_temp, int period ) {
         auto SetLightState = [r, g, b, color_temp, period](std::string const& __ip)
         {
-            TPLinkLight tplinkLight(__ip, 1);
+            BaseLight tplinkLight(__ip, 1);
             tplinkLight.setLightOnRGB(r, g, b, color_temp, period);
         };
         if(ip.find(",") != std::string::npos) {
@@ -562,7 +573,7 @@ public:
     void SetLightOnHSV(std::string const& ip, int hue, int sat, int bright, int color_temp, int period) {
         auto SetLightState = [hue, sat, bright, color_temp, period](std::string const& __ip)
         {
-            TPLinkLight tplinkLight(__ip, 1);
+            BaseLight tplinkLight(__ip, 1);
             tplinkLight.setLightOnHSV(hue, sat, bright, color_temp, period);
         };
         if(ip.find(",") != std::string::npos) {
@@ -578,7 +589,7 @@ public:
     void SetLightOff(std::string const& ip) {
         auto SetLightState = [](std::string const& __ip)
         {
-            TPLinkLight tplinkLight(__ip, 1);
+            BaseLight tplinkLight(__ip, 1);
             tplinkLight.setLightOff();
         };
         if(ip.find(",") != std::string::npos) {
