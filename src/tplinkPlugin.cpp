@@ -48,6 +48,9 @@
 #include "TasmotaLight.h"
 #include "TasmotaSwitch.h"
 
+#define LIGHT_TYPES {"tplink", "tasmota", "govee"}
+#define SWITCH_TYPES {"tplink", "tasmota"}
+
 using namespace std::chrono_literals;
 
 class TPLinkPlugin : public FPPPlugin, public httpserver::http_resource {
@@ -68,15 +71,17 @@ public:
     class TPLinkSetSwitchCommand : public Command {
     public:
         TPLinkSetSwitchCommand(TPLinkPlugin *p) : Command("TPLink Set Switch"), plugin(p) {
-            args.push_back(CommandArg("IP", "string", "IP Address"));
+            args.push_back(CommandArg("IP", "string", "IP Address"));            
             args.push_back(CommandArg("state", "bool", "Set Switch On or Off").setDefaultValue("true"));
             args.push_back(CommandArg("plug", "int", "Set Plug Number").setRange(0, 255).setDefaultValue("0"));
+            args.push_back(CommandArg("type", "string", "Switch Type").setContentList(SWITCH_TYPES).setDefaultValue("tplink"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
-            std::string ipAddress = "";
+            std::string ipAddress;
             bool bulbOn = true;
             int plug_num = 0;
+            std::string switch_type;
             if (args.size() >= 1) {
                 ipAddress = args[0];
             }
@@ -86,7 +91,10 @@ public:
             if (args.size() >= 3) {
                 plug_num = std::stoi(args[2]);
             }
-            plugin->SetSwitchState(ipAddress, bulbOn, plug_num);
+            if (args.size() >= 4) {
+                switch_type = args[3];
+            }
+            plugin->SetSwitchState(ipAddress, bulbOn, plug_num, switch_type);
             return std::make_unique<Command::Result>("TPLink Switch Set");
         }
         TPLinkPlugin *plugin;
@@ -95,15 +103,17 @@ public:
      class TPLinkToggleSwitchCommand : public Command {
     public:
         TPLinkToggleSwitchCommand(TPLinkPlugin *p) : Command("TPLink Toggle Switch"), plugin(p) {
-            args.push_back(CommandArg("IP", "string", "IP Address"));
+            args.push_back(CommandArg("IP", "string", "IP Address"));            
             args.push_back(CommandArg("delay", "int", "Delay MS").setRange(1, 10000).setDefaultValue("100"));
             args.push_back(CommandArg("plug", "int", "Set Plug Number").setRange(0, 255).setDefaultValue("0"));
+            args.push_back(CommandArg("type", "string", "Switch Type").setContentList(SWITCH_TYPES).setDefaultValue("tplink"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
-            std::string ipAddress = "";
+            std::string ipAddress;
             std::chrono::milliseconds delay = 10ms;
             int plug_num = 0;
+            std::string switch_type;
             if (args.size() >= 1) {
                 ipAddress = args[0];
             }
@@ -113,9 +123,12 @@ public:
             if (args.size() >= 3) {
                 plug_num = std::stoi(args[2]);
             }
-            plugin->SetSwitchState(ipAddress, false, plug_num);
+            if (args.size() >= 4) {
+                switch_type = args[3];
+            }
+            plugin->SetSwitchState(ipAddress, false, plug_num, switch_type);
             std::this_thread::sleep_for(delay);
-            plugin->SetSwitchState(ipAddress, true, plug_num);
+            plugin->SetSwitchState(ipAddress, true, plug_num, switch_type);
             return std::make_unique<Command::Result>("TPLink Switch Toggle");
         }
         TPLinkPlugin *plugin;
@@ -130,15 +143,17 @@ public:
             args.push_back(CommandArg("b", "int", "Blue").setRange(0, 255).setDefaultValue("255"));
             args.push_back(CommandArg("color_temp", "int", "Color Temp").setRange(0, 9000).setDefaultValue("0"));
             args.push_back(CommandArg("period", "int", "Delay in ms").setRange(0, 30000).setDefaultValue("0"));
+            args.push_back(CommandArg("type", "string", "Light Type").setContentList(LIGHT_TYPES).setDefaultValue("tplink"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
-            std::string ipAddress = "";
+            std::string ipAddress;
             uint8_t r = 255;
             uint8_t g = 255;
             uint8_t b = 255;
             int colorTemp = 0;
             int period = 0;
+            std::string light_type;
             if (args.size() >= 1) {
                 ipAddress = args[0];
             }
@@ -157,7 +172,10 @@ public:
             if (args.size() >= 6) {
                 period = std::stoi(args[5]);
             }
-            plugin->SetLightOnRGB(ipAddress, r, g, b, colorTemp, period);
+            if (args.size() >= 7) {
+                light_type = args[6];
+            }
+            plugin->SetLightOnRGB(ipAddress, r, g, b, colorTemp, period, light_type);
             return std::make_unique<Command::Result>("TPLink Light RGB Set");
         }
         TPLinkPlugin *plugin;
@@ -172,15 +190,17 @@ public:
             args.push_back(CommandArg("bright", "int", "Brightness").setRange(0, 100).setDefaultValue("100"));
             args.push_back(CommandArg("color_temp", "int", "Color Temp").setRange(0, 9000).setDefaultValue("0"));
             args.push_back(CommandArg("period", "int", "Delay in ms").setRange(0, 30000).setDefaultValue("0"));
+            args.push_back(CommandArg("type", "string", "Light Type").setContentList(LIGHT_TYPES).setDefaultValue("tplink"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
-            std::string ipAddress = "";
+            std::string ipAddress;
             int hue = 1;
             int sat = 100;
             int bright = 100;
             int colorTemp = 0;
             int period = 0;
+            std::string light_type;
             if (args.size() >= 1) {
                 ipAddress = args[0];
             }
@@ -199,7 +219,10 @@ public:
             if (args.size() >= 6) {
                 period = std::stoi(args[5]);
             }
-            plugin->SetLightOnHSV(ipAddress, hue, sat, bright, colorTemp, period);
+            if (args.size() >= 7) {
+                light_type = args[6];
+            }
+            plugin->SetLightOnHSV(ipAddress, hue, sat, bright, colorTemp, period, light_type);
             return std::make_unique<Command::Result>("TPLink Light HSV Set");
         }
         TPLinkPlugin *plugin;
@@ -209,15 +232,19 @@ public:
     public:
         TPLinkSetLightOffCommand(TPLinkPlugin *p) : Command("TPLink Set Light Off"), plugin(p) {
             args.push_back(CommandArg("IP", "string", "IP Address")); 
+            args.push_back(CommandArg("type", "string", "Light Type").setContentList(LIGHT_TYPES).setDefaultValue("tplink"));
         }
         
         virtual std::unique_ptr<Command::Result> run(const std::vector<std::string> &args) override {
-            std::string ipAddress = "";
+            std::string ipAddress;
+            std::string light_type;
             if (args.size() >= 1) {
                 ipAddress = args[0];
             }
-
-            plugin->SetLightOff(ipAddress);
+            if (args.size() >= 2) {
+                light_type = args[1];
+            }
+            plugin->SetLightOff(ipAddress, light_type);
             return std::make_unique<Command::Result>("TPLink Light Off Set");
         }
         TPLinkPlugin *plugin;
@@ -408,7 +435,7 @@ public:
 
     void turnSwitchesOff() {
         std::for_each(std::execution::par, std::begin(_TPLinkOutputs), std::end(_TPLinkOutputs), [](auto& output) {
-            auto* derived = dynamic_cast<TPLinkSwitch*>(output.get());
+            auto* derived = dynamic_cast<BaseSwitch*>(output.get());
             if (derived) {
                 derived->EnableOutput();
                 derived->setRelayOff();
@@ -418,7 +445,7 @@ public:
 
     void turnSwitchesOn() {
         std::for_each(std::execution::par, std::begin(_TPLinkOutputs), std::end(_TPLinkOutputs), [](auto& output) {
-            auto* derived = dynamic_cast<TPLinkSwitch*>(output.get());
+            auto* derived = dynamic_cast<BaseSwitch*>(output.get());
             if (derived) {
                 derived->EnableOutput();
                 derived->setRelayOn();
@@ -429,7 +456,7 @@ public:
     void turnLightsRGB(uint8_t r, uint8_t g, uint8_t b, int color_temp, int period) {
         std::for_each(std::execution::par, std::begin(_TPLinkOutputs), std::end(_TPLinkOutputs),
          [r, g, b, color_temp, period](auto& output) {
-            auto* derived = dynamic_cast<TPLinkLight*>(output.get());
+            auto* derived = dynamic_cast<BaseLight*>(output.get());
             if (derived) {
                 derived->EnableOutput();
                 derived->setLightOnRGB(r, g, b, color_temp, period);
@@ -440,7 +467,7 @@ public:
     void turnLightsHSV(int hue, int sat, int bright, int color_temp, int period) {
         std::for_each(std::execution::par, std::begin(_TPLinkOutputs), std::end(_TPLinkOutputs),
          [hue, sat, bright, color_temp, period](auto& output) {
-            auto* derived = dynamic_cast<TPLinkLight*>(output.get());
+            auto* derived = dynamic_cast<BaseLight*>(output.get());
             if (derived) {
                 derived->EnableOutput();
                 derived->setLightOnHSV(hue, sat, bright, color_temp, period);
@@ -450,7 +477,7 @@ public:
 
     void turnLightsOff() {
         std::for_each(std::execution::par, std::begin(_TPLinkOutputs), std::end(_TPLinkOutputs), [](auto& output) {
-            auto* derived = dynamic_cast<TPLinkLight*>(output.get());
+            auto* derived = dynamic_cast<BaseLight*>(output.get());
             if (derived) {
                 derived->EnableOutput();
                 derived->setLightOff();
@@ -483,6 +510,42 @@ public:
         outfile.close();
     }
 
+    std::unique_ptr<BaseItem> getLightDevicePtr(std::string const& devicetype, std::string const& ip, unsigned int sc)
+    {
+        std::unique_ptr<BaseItem> tplinkItem;
+        if (devicetype.find("light") != std::string::npos ||
+            devicetype.find("tplinklight") != std::string::npos ||
+            devicetype.find("tplink") != std::string::npos) {
+            tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
+        }  else if (devicetype.find("goveelight") != std::string::npos ||
+                    devicetype.find("govee") != std::string::npos) {
+            tplinkItem = std::make_unique<GoveeLight>(ip, sc);
+        } else if (devicetype.find("tasmotalight") != std::string::npos ||
+                   devicetype.find("tasmota") != std::string::npos) {
+            tplinkItem = std::make_unique<TasmotaLight>(ip, sc);
+        } else {
+            LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
+            tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
+        }
+        return tplinkItem;
+    }
+
+    std::unique_ptr<BaseItem> getSwitchDevicePtr(std::string const& devicetype, std::string const& ip, unsigned int sc, int plug_num)
+    {
+        std::unique_ptr<BaseItem> tplinkItem;
+        if (devicetype.find("switch") != std::string::npos||
+            devicetype.find("tplinkswitch") != std::string::npos ||
+            devicetype.find("tplink") != std::string::npos) {
+            tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plug_num);
+        } else if (devicetype.find("tasmotaswitch") != std::string::npos ||
+                    devicetype.find("tasmota") != std::string::npos) {
+            tplinkItem = std::make_unique<TasmotaSwitch>(ip, sc, plug_num);
+        } else {
+            LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
+            tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plug_num);
+        }
+        return tplinkItem;
+    }
 
     void readFiles()
     {
@@ -533,15 +596,18 @@ public:
         return topics;
     } 
 
-    void SetSwitchState(std::string const& ip, bool state, int plug_num) {
+    void SetSwitchState(std::string const& ip, bool state, int plug_num, std::string const& type) {
 
-        auto SetSwState = [state,plug_num](std::string const& __ip)
+        auto SetSwState = [this,state,plug_num,type](std::string const& __ip)
         {
-            BaseSwitch tplinkSwitch(__ip, 1, plug_num);
-            if(state){
-                tplinkSwitch.setRelayOn();
-            } else{
-                tplinkSwitch.setRelayOff();
+            auto sswitch = getSwitchDevicePtr(type, __ip, 1, plug_num);
+            auto* derived = dynamic_cast<BaseSwitch*>(sswitch.get());
+            if (derived) {
+                if(state){
+                    derived->setRelayOn();
+                } else{
+                    derived->setRelayOff();
+                }
             }
         };
         if(ip.find(",") != std::string::npos) {
@@ -554,11 +620,14 @@ public:
         }
     }
 
-    void SetLightOnRGB(std::string const& ip, uint8_t r, uint8_t g, uint8_t b, int color_temp, int period ) {
-        auto SetLightState = [r, g, b, color_temp, period](std::string const& __ip)
+    void SetLightOnRGB(std::string const& ip, uint8_t r, uint8_t g, uint8_t b, int color_temp, int period , std::string const& type) {
+        auto SetLightState = [this, r, g, b, color_temp, period, type](std::string const& __ip)
         {
-            BaseLight tplinkLight(__ip, 1);
-            tplinkLight.setLightOnRGB(r, g, b, color_temp, period);
+            auto light = getLightDevicePtr(type, __ip, 1);
+            auto* derived = dynamic_cast<BaseLight*>(light.get());
+            if (derived) {
+                derived->setLightOnRGB(r, g, b, color_temp, period);
+            }
         };
         if(ip.find(",") != std::string::npos) {
             auto ips = split(ip, ',');
@@ -570,11 +639,16 @@ public:
         }
     }
 
-    void SetLightOnHSV(std::string const& ip, int hue, int sat, int bright, int color_temp, int period) {
-        auto SetLightState = [hue, sat, bright, color_temp, period](std::string const& __ip)
+    void SetLightOnHSV(std::string const& ip, int hue, int sat, int bright, int color_temp, int period, std::string const& type) {
+        auto SetLightState = [this, hue, sat, bright, color_temp, period, type](std::string const& __ip)
         {
-            BaseLight tplinkLight(__ip, 1);
-            tplinkLight.setLightOnHSV(hue, sat, bright, color_temp, period);
+            auto light = getLightDevicePtr(type, __ip, 1);
+            auto* derived = dynamic_cast<BaseLight*>(light.get());
+            if (derived) {
+                derived->setLightOnHSV(hue, sat, bright, color_temp, period);
+            }
+            //BaseLight tplinkLight(__ip, 1);
+            //tplinkLight.setLightOnHSV(hue, sat, bright, color_temp, period);
         };
         if(ip.find(",") != std::string::npos) {
             auto ips = split(ip, ',');
@@ -586,11 +660,16 @@ public:
         }
     }
 
-    void SetLightOff(std::string const& ip) {
-        auto SetLightState = [](std::string const& __ip)
+    void SetLightOff(std::string const& ip, std::string const& type) {
+        auto SetLightState = [this, type](std::string const& __ip)
         {
-            BaseLight tplinkLight(__ip, 1);
-            tplinkLight.setLightOff();
+            auto light = getLightDevicePtr(type, __ip, 1);
+            auto* derived = dynamic_cast<BaseLight*>(light.get());
+            if (derived) {
+                derived->setLightOff();
+            }
+            //BaseLight tplinkLight(__ip, 1);
+            //tplinkLight.setLightOff();
         };
         if(ip.find(",") != std::string::npos) {
             auto ips = split(ip, ',');

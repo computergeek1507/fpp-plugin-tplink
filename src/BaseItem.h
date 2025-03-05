@@ -20,8 +20,8 @@ public:
 
     virtual bool SendData(unsigned char *data) = 0;
 
-    virtual std::string GetType() const = 0;
-    virtual std::string GetConfigString() const = 0;
+    virtual std::string GetType() const {return "";};
+    virtual std::string GetConfigString() const;
 
 protected:
     std::string m_ipAddress;

@@ -32,10 +32,6 @@ GoveeLight::~GoveeLight() {
     
 }
 
-std::string GoveeLight::GetConfigString() const {
-    return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType();
-}
-
 bool GoveeLight::setLightOnHSV( int hue, int saturation, int brightness, int color_Temp, int period) {
     //{"smartlife.iot.smartbulb.lightingservice":{"transition_light_state":{"ignore_default":1,"transition_period":150,"mode":"normal","hue":120,"on_off":1,"saturation":65,"color_temp":0,"brightness":10}}}
     

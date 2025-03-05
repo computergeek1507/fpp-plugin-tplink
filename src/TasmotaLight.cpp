@@ -31,10 +31,6 @@ TasmotaLight::~TasmotaLight() {
     }
 }
 
-std::string TasmotaLight::GetConfigString() const {
-    return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType();
-}
-
 bool TasmotaLight::setLightOnHSV( int hue, int saturation, int brightness, int color_Temp, int period) {
     std::string repURL = "http://" + m_ipAddress + "/cm?cmnd=HSBColor%20" + std::to_string(hue)
     + "," + std::to_string(saturation) + ","  + std::to_string(brightness);

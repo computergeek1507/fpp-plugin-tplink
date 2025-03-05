@@ -11,9 +11,9 @@ public:
 
     bool SendData( unsigned char *data) override;
 
-    virtual bool setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp = 0, int period = 0)=0;
-    virtual bool setLightOnHSV( int hue, int saturation, int brightness, int color_Temp = 0, int period = 0)=0;
-    virtual bool setLightOff()=0;
+    virtual bool setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp = 0, int period = 0) = 0;
+    virtual bool setLightOnHSV( int hue, int saturation, int brightness, int color_Temp = 0, int period = 0) = 0;
+    virtual bool setLightOff() = 0;
 
 protected:
     uint8_t m_r;
