@@ -24,9 +24,7 @@
 #include <ostream>
 
 TPLinkSwitch::TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num) :
-    TPLinkItem(ip,startChannel),
-    m_w(0),
-    m_plug_num(plug_num)
+BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseSwitch(ip,startChannel,plug_num)
 {
     m_deviceId = getDeviceId(plug_num);
 }
@@ -40,50 +38,6 @@ std::string TPLinkSwitch::GetConfigString() const
     return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType() + 
     " Plug Number: " + std::to_string(m_plug_num) + " Device ID: " + m_deviceId;
 }
-
-bool TPLinkSwitch::SendData( unsigned char *data) {
-    try
-    {
-        if(m_unreachable){
-            return false;
-        }
-
-        if(m_startChannel == 0){
-            return false;
-        }
-
-        uint8_t w = data[m_startChannel - 1];
-
-        if(w == m_w ) {
-            if(m_seqCount < 1201) {
-                ++ m_seqCount;
-                return true;
-            }
-        }
-        m_seqCount=0;
-        m_w = w;
-
-        std::thread t(&TPLinkSwitch::outputData, this, w );
-        t.detach();
-        //outputData(w );
-        return true;
-    }
-    catch(std::exception const& ex)
-    {
-        m_unreachable = true;
-        LogInfo(VB_PLUGIN, "Error %s \n",ex.what());
-    }
-    return false;
-}
-
-void TPLinkSwitch::outputData( uint8_t w ) {
-    if(w >= 127){
-        setRelayOn();
-    } else {
-        setRelayOff();
-    }
-}
-
 
 std::string TPLinkSwitch::getDeviceId(int plug_num) {
 
@@ -121,24 +75,24 @@ std::string TPLinkSwitch::getDeviceId(int plug_num) {
     return "";
 }
 
-std::string TPLinkSwitch::setRelayOn() {
+bool TPLinkSwitch::setRelayOn() {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
-    return sendCmd(appendPlugData(cmd));
+    return !sendCmd(appendPlugData(cmd)).empty();
 }
 
-std::string TPLinkSwitch::setRelayOff() {
+bool TPLinkSwitch::setRelayOff() {
     const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":0}}}";
-    return sendCmd(appendPlugData(cmd));
+    return !sendCmd(appendPlugData(cmd)).empty();
 }
 
-std::string TPLinkSwitch::setLedOff() {
+bool TPLinkSwitch::setLedOff() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":1}}}";
-    return sendCmd(appendPlugData(cmd));
+    return !sendCmd(appendPlugData(cmd)).empty();
 }
 
-std::string TPLinkSwitch::setLedOn() {
+bool TPLinkSwitch::setLedOn() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":0}}}";
-    return sendCmd(appendPlugData(cmd));
+    return !sendCmd(appendPlugData(cmd)).empty();
 }
 
 

@@ -20,13 +20,8 @@
 #include <istream>
 #include <ostream>
 
-TPLinkItem::TPLinkItem(std::string const& ip, unsigned int startChannel) :
-    m_ipAddress(ip),
-    m_port(9999),
-    m_startChannel(startChannel),
-    m_seqCount(0),
-    m_unreachable(false),
-    m_issending(false)
+TPLinkItem::TPLinkItem(std::string const& ip, unsigned int startChannel ):
+    BaseItem(ip,startChannel), m_port(9999)
 {
 }
 

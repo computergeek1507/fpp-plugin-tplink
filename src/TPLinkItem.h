@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BaseItem.h"
+
 #include <stdlib.h>
 #include <list>
 #include <string>
@@ -8,35 +10,18 @@
 //#include "common.h"
 #include "log.h"
 
-class TPLinkItem {
+class TPLinkItem  : virtual public BaseItem {
 public:
     TPLinkItem(std::string const& ip, unsigned int startChannel );
     virtual ~TPLinkItem();
 
-    std::string GetIPAddress() const { return m_ipAddress; }
-    unsigned int GetStartChannel() const { return m_startChannel; }
-
-    void EnableOutput() { m_unreachable = false; m_issending = false; }
-
-    virtual bool SendData(unsigned char *data) = 0;
-
-    virtual std::string GetType() const = 0;
-    virtual std::string GetConfigString() const = 0;
-
     std::string getInfo();
 
 protected:
-    std::string m_ipAddress;
-    uint16_t m_port;
-    unsigned int m_startChannel;
-    unsigned int m_seqCount;
-
-    std::atomic<bool> m_unreachable;
-    std::atomic<bool> m_issending;
-
     std::string sendCmd(std::string const& cmd);
 
 private:
+    uint16_t m_port{9999};
     static void serializeUint32(char (&buf)[4], uint32_t val);
     static void encrypt(char *data, uint16_t length);
     static void encryptWithHeader(char *out, char *data, uint16_t length);
