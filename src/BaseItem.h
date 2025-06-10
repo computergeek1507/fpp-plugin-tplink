@@ -20,12 +20,12 @@ public:
 
     virtual bool SendData(unsigned char *data) = 0;
 
-    virtual std::string GetType() const {return "";};
+    virtual std::string GetType() const = 0;// {return "";};
     virtual std::string GetConfigString() const;
 
 protected:
     std::string m_ipAddress;
-    uint16_t m_port;
+    
     unsigned int m_startChannel;
     unsigned int m_seqCount;
 

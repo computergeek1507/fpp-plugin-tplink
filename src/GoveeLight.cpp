@@ -46,7 +46,6 @@ bool GoveeLight::setLightOff(){
     return !sendCmd(cmd).empty();
 }
 
-
 bool GoveeLight::setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp, int period) {
     /*
     "msg":{
@@ -57,92 +56,52 @@ bool GoveeLight::setLightOnRGB( uint8_t r, uint8_t g, uint8_t b, int color_Temp,
                         }    
                     }
     */
-
+   //{"msg":{"cmd":"colorwc","data":{"color":{"r":255,"g":0,"b":0},"colorTemInKelvin":0}}
+//{"msg":{"cmd":"turn","data":{"value":1}}}
+//"{\"msg\":{\"cmd\":\"colorwc\",\"data\":{\"color\":{\"r\":255,\"g\":0,\"b\":0},\"colorTemInKelvin\":0}}}"
    const std::string cmd = "{\"msg\":{\"cmd\":\"colorwc\",\"data\":{\"color\":{\"r\":" + std::to_string(r) + ",\"g\":"
-    + std::to_string(g) + ",\"b\":" + std::to_string(b) +"},\"colorTemInKelvin\":" + std::to_string(color_Temp) +"}}" ;
+    + std::to_string(g) + ",\"b\":" + std::to_string(b) +"},\"colorTemInKelvin\":" + std::to_string(color_Temp) +"}}}" ;
    return !sendCmd(cmd).empty();
 }
 
-std::string GoveeLight::sendCmd(std::string const& cmd) {
-    try {
-        char encrypted[cmd.length()];
-        std::memcpy(encrypted, const_cast<char *>(cmd.c_str()), cmd.length());
-        //encryptWithHeader(encrypted, const_cast<char *>(cmd.c_str()), cmd.length());
-        char response[2048] = {0};
-
-        uint16_t length = sockConnect(response, m_ipAddress.c_str(), m_port, encrypted, cmd.length() + 4);
-        if (length == 0) {
-            return std::string("");
-        }
-        return std::string(response);
-    }
-    catch(std::exception const& ex) {
-        LogInfo(VB_PLUGIN, "Error %s \n", ex.what());
-    }
-    return std::string("");
-}
-
-uint16_t GoveeLight::sockConnect(char *out, const char *ip_add, int port, const char *cmd, uint16_t length) {
-    if(m_issending)
-    {
-        return 0;
-    }
-    m_issending = true;
-    //struct sockaddr_in address;
-    int sock = 0;
-    struct sockaddr_in serv_addr;
-    char buf[2048] = {0};
-    //  char buffer[2048] = {0};
-    //    char buffer[2048] = {0};
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("\n Socket creation error \n");
-        m_issending = false;
-        return 0;
+std::string GoveeLight::sendCmd(std::string cmd) 
+{
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd == -1) {
+        std::cerr << "Error creating socket" << std::endl;
+         LogInfo(VB_PLUGIN, "Error creating socket\n");
+          m_unreachable = true;
+        return "";
     }
 
-    memset(&serv_addr, '0', sizeof(serv_addr));
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(port);
-
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, ip_add, &serv_addr.sin_addr) <= 0) {
-        printf("\nInvalid address/ Address not supported \n");
-        m_issending = false;
-        return 0;
+    // 2. Define the target address
+    sockaddr_in targetAddr;
+    targetAddr.sin_family = AF_INET;
+    targetAddr.sin_port = htons(4003); // Govee's default port
+    if (inet_pton(AF_INET, m_ipAddress.c_str(), &targetAddr.sin_addr) <= 0) { // Replace with your device's IP
+        std::cerr << "Invalid address" << std::endl;
+        LogInfo(VB_PLUGIN, "Invalid address\n");
+        close(sockfd);
+         m_unreachable = true;
+        return "";
     }
 
-    int synRetries = 2; // Send a total of 3 SYN packets => Timeout ~7s
-    setsockopt(sock, IPPROTO_TCP, TCP_SYNCNT, &synRetries, sizeof(synRetries));
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        printf("\nConnection Failed \n");
-        m_issending = false;
-        return 0;
-    }
-    send(sock, cmd, length, 0);
-
-    int br = recv(sock, buf, 2048, 0);
-    int dataLen = 0;
-    int valread = 0;
-    if (br > 4) {
-        dataLen = ((int)buf[2] << 8) + (int)buf[3];
-        valread = br;
-        while (br >= 0 && (valread < (dataLen + 4))) {
-            br = recv(sock, buf + valread, 2048 - valread, 0);
-            if (br > 0) {
-                valread += br;
-            }
-        }
-    }
-    close(sock);
-
-    if (valread == 0) {
-        printf("\nNo bytes read\n");
+    // 3. Prepare the message
+    //const char* message = cmd.c_str(); // Example command to set color
+    //const char* message = "{\"msg\":{\"cmd\":\"colorwc\",\"data\":{\"color\":{\"r\":255,\"g\":0,\"b\":0},\"colorTemInKelvin\":0}}}"; // Example command to set color
+    // Example: Set color to red
+    //LogInfo(VB_PLUGIN, cmd.c_str());
+    // 4. Send the message
+    ssize_t bytesSent = sendto(sockfd, cmd.c_str(), cmd.size(), 0, (sockaddr*)&targetAddr, sizeof(targetAddr));
+    if (bytesSent == -1) {
+        std::cerr << "Error sending message" << std::endl;
+        LogInfo(VB_PLUGIN, "Error sending message\n");
     } else {
-        // buf + 4 strips 4 byte header
-        // valread - 3 leaves 1 byte for terminating null character
-        strncpy(out, buf + 4, valread - 3);
+        std::cout << "Message sent successfully" << std::endl;
+        LogInfo(VB_PLUGIN, "Message sent successfully\n");
     }
-    m_issending = false;
-    return valread;
+
+    // 5. Close the socket
+    close(sockfd);
+    return "0";
 }

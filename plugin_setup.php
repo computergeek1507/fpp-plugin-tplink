@@ -50,9 +50,15 @@ function AddTPLinkItem(type) {
     html += "<td><select class='devicetype'>";
     html += "<option value='light'";
     if(type == 'light') {html += " selected ";}
-    html += ">Light</option><option value='switch'";
+    html += ">TPLink Light</option><option value='switch'";
     if(type == 'switch') {html += " selected ";}
-    html += ">Switch/Plug</option></select>";
+    html += ">TPLink Switch/Plug</option><option value='goveelight'";
+    if(type == 'goveelight') {html += " selected ";}
+    html += ">Govee Light</option><option value='tasmotalight'";
+    if(type == 'tasmotalight') {html += " selected ";}
+    html += ">Tasmota Light</option><option value='tasmotaswitch'";
+    if(type == 'tasmotaswitch') {html += " selected ";}
+    html += ">Tasmota Switch</option></select>";
     html += "<td><input type='number' value='0' min='0' max='10' class='plugnum' />";
     html += "</tr>";
     //selected

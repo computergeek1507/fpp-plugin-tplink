@@ -21,6 +21,7 @@ protected:
     std::string sendCmd(std::string const& cmd);
 
 private:
+    uint16_t m_port{9999};
     static void serializeUint32(char (&buf)[4], uint32_t val);
     static void encrypt(char *data, uint16_t length);
     static void encryptWithHeader(char *out, char *data, uint16_t length);

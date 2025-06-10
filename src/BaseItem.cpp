@@ -18,7 +18,7 @@
 
 BaseItem::BaseItem(std::string const& ip, unsigned int startChannel) :
     m_ipAddress(ip),
-    m_port(9999),
+    //m_port(9999),
     m_startChannel(startChannel),
     m_seqCount(0),
     m_unreachable(false),

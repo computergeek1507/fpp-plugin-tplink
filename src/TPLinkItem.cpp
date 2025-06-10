@@ -21,7 +21,7 @@
 #include <ostream>
 
 TPLinkItem::TPLinkItem(std::string const& ip, unsigned int startChannel ):
-    BaseItem(ip,startChannel)
+    BaseItem(ip,startChannel), m_port(9999)
 {
 }
 

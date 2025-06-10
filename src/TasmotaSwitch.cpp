@@ -1,18 +1,18 @@
 #include "TasmotaSwitch.h"
 
-#include <stdlib.h>
-#include <cstdint>
+//#include <stdlib.h>
+//#include <cstdint>
 #include <thread>
-#include <cmath>
+//#include <cmath>
 
-#include <arpa/inet.h>  // for inet_pton
-#include <netinet/in.h> // for sockaddr_in, htons
-#include <stdint.h>     // for uint16_t, uint8_t, uint32_t
-#include <stdio.h>      // for printf
-#include <sys/socket.h> // for AF_INET, connect, send, socket, SOCK_STREAM
-#include <unistd.h>     // for close, read
-#include <string>       // for string
-#include <cstring>      // for ??? memcpy, memset, strncpy
+//#include <arpa/inet.h>  // for inet_pton
+//#include <netinet/in.h> // for sockaddr_in, htons
+//#include <stdint.h>     // for uint16_t, uint8_t, uint32_t
+//#include <stdio.h>      // for printf
+//#include <sys/socket.h> // for AF_INET, connect, send, socket, SOCK_STREAM
+//#include <unistd.h>     // for close, read
+//#include <string>       // for string
+//#include <cstring>      // for ??? memcpy, memset, strncpy
 
 
 #include <iostream>

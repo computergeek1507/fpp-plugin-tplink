@@ -9,9 +9,9 @@ public:
     TasmotaSwitch(std::string const& ip, unsigned int startChannel, int plug_num );
     virtual ~TasmotaSwitch();
 
-    bool SendData( unsigned char *data) override;
+    //bool SendData( unsigned char *data) override;
 
-    std::string GetType() const override {return "TasmotaSwitch";}
+    std::string GetType() const override { return "TasmotaSwitch"; }
     std::string GetConfigString() const override;
 
     bool setRelayOn() override;
