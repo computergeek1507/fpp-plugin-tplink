@@ -15,7 +15,7 @@ public:
     bool setLedOn() override;
     bool setLedOff() override;
 
-    std::string GetType() const override {return "TPLinkSwitch";}
+    std::string GetType() const override { return "TPLinkSwitch"; }
     std::string GetConfigString() const override;
 
 private:

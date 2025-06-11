@@ -28,16 +28,13 @@ GoveeLight::GoveeLight(std::string const& ip, unsigned int startChannel):
 
  }
 
-GoveeLight::~GoveeLight() {
-    
+GoveeLight::~GoveeLight() {    
 }
 
 bool GoveeLight::setLightOnHSV( int hue, int saturation, int brightness, int color_Temp, int period) {
-    //{"smartlife.iot.smartbulb.lightingservice":{"transition_light_state":{"ignore_default":1,"transition_period":150,"mode":"normal","hue":120,"on_off":1,"saturation":65,"color_temp":0,"brightness":10}}}
-    
-    const std::string cmd = "{\"smartlife.iot.smartbulb.lightingservice\":{\"transition_light_state\":{\"ignore_default\":1,\"transition_period\":" + std::to_string(period) + ",\"mode\":\"normal\",\"hue\":" 
-    + std::to_string(hue) + ",\"on_off\":1,\"saturation\":" + std::to_string(saturation) + ",\"color_temp\":" + std::to_string(color_Temp) + ",\"brightness\":" + std::to_string(brightness) + "}}}";
-    return !sendCmd(cmd).empty();
+    float r, g, b;
+    HSVtoRGB(hue, saturation, brightness, r, g, b);
+    return setLightOnRGB(r, g, b, color_Temp, period);
 }
 
 bool GoveeLight::setLightOff(){

@@ -22,5 +22,5 @@ protected:
 
     void outputData( uint8_t r ,uint8_t g ,uint8_t b );
     void RGBtoHSIV(float fR, float fG, float fB, float& fH, float& fSI, float& fSV,float& fI, float& fV);
-
+    void HSVtoRGB(float H, float S, float V, float& fR, float& fG, float& fB);
 };
