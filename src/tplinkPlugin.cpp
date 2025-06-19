@@ -562,18 +562,18 @@ public:
                 unsigned int sc =  config[i].get("startchannel",1).asInt();
                 if(!ip.empty()) {
                     std::unique_ptr<BaseItem> tplinkItem;
-                    if (devicetype.find("light") != std::string::npos) {
-                        tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
-                    } else if (devicetype.find("switch") != std::string::npos) {
-                        int const plugNum =  config[i].get("plugnumber", 0).asInt();
-                        tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plugNum);
-                    } else if (devicetype.find("goveelight") != std::string::npos) {
+                    if (devicetype.find("goveelight") != std::string::npos) {
                         tplinkItem = std::make_unique<GoveeLight>(ip, sc);
                     } else if (devicetype.find("tasmotalight") != std::string::npos) {
                         tplinkItem = std::make_unique<TasmotaLight>(ip, sc);
                     } else if (devicetype.find("tasmotaswitch") != std::string::npos) {
                         int const plugNum =  config[i].get("plugnumber", 0).asInt();
                         tplinkItem = std::make_unique<TasmotaSwitch>(ip, sc, plugNum);
+                    } else if (devicetype.find("light") != std::string::npos) {
+                        tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
+                    } else if (devicetype.find("switch") != std::string::npos) {
+                        int const plugNum =  config[i].get("plugnumber", 0).asInt();
+                        tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plugNum);
                     } else {
                         LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
                         tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
