@@ -563,8 +563,12 @@ public:
         std::string configLocation = FPP_DIR_CONFIG("/plugin.tplink.json");
 #endif
         if (LoadJsonFromFile(configLocation, config)) {
-            username = config.get("username", "").asString();
-            password = config.get("password", "").asString();
+            //if(config.isMember("username") ) {
+            //    username = config.get("username", "").asString();
+            //}
+            //if(config.isMember("password") ) {
+            //    password = config.get("password", "").asString();
+            //}
             //LogInfo(VB_PLUGIN, "TPLink Plugin Username: %s", username.c_str());
             //LogInfo(VB_PLUGIN, "TPLink Plugin Password: %s", password.c_str());
 
@@ -583,10 +587,18 @@ public:
                         tplinkItem = std::make_unique<TasmotaSwitch>(ip, sc, plugNum);
                     } else if (devicetype.find("tapolight") != std::string::npos) {
                         tplinkItem = std::make_unique<TapoLight>(ip, sc);
+                        if (config[i].isMember("username") && config[i].isMember("password")) {
+                            username = config[i]["username"].asString();
+                            password = config[i]["password"].asString();
+                        }
                         tplinkItem->Authenticate(username, password);
                     } else if (devicetype.find("taposwitch") != std::string::npos) {
                         int const plugNum =  config[i].get("plugnumber", 0).asInt();
                         tplinkItem = std::make_unique<TapoSwitch>(ip, sc, plugNum);
+                        if (config[i].isMember("username") && config[i].isMember("password")) {
+                            username = config[i]["username"].asString();
+                            password = config[i]["password"].asString();
+                        }
                         tplinkItem->Authenticate(username, password);
                     } else if (devicetype.find("light") != std::string::npos) {
                         tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
