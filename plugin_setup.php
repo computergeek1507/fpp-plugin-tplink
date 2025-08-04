@@ -58,7 +58,11 @@ function AddTPLinkItem(type) {
     if(type == 'tasmotalight') {html += " selected ";}
     html += ">Tasmota Light</option><option value='tasmotaswitch'";
     if(type == 'tasmotaswitch') {html += " selected ";}
-    html += ">Tasmota Switch</option></select>";
+    html += ">Tasmota Switch</option><option value='tapolight'";
+    if(type == 'tapolight') {html += " selected ";}
+    html += ">Tapo Light</option><option value='taposwitch'";
+    if(type == 'taposwitch') {html += " selected ";}
+    html += ">Tapo Switch</option></select>";
     html += "<td><input type='number' value='0' min='0' max='10' class='plugnum' />";
     html += "</tr>";
     //selected

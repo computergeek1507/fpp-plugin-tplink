@@ -23,6 +23,8 @@ public:
     virtual std::string GetType() const = 0;// {return "";};
     virtual std::string GetConfigString() const;
 
+    virtual void Authenticate( std::string const& username, std::string const& password) const {  }
+
 protected:
     std::string m_ipAddress;
     

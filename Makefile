@@ -3,7 +3,7 @@ include /opt/fpp/src/makefiles/common/setup.mk
 all: libfpp-plugin-tplink.so
 debug: all
 
-OBJECTS_fpp_tplink_so += src/tplinkPlugin.o src/TPLinkItem.o src/TPLinkLight.o src/TPLinkSwitch.o src/BaseItem.o src/BaseSwitch.o src/BaseLight.o src/GoveeLight.o src/TasmotaLight.o src/TasmotaSwitch.o
+OBJECTS_fpp_tplink_so += src/tplinkPlugin.o src/TPLinkItem.o src/TPLinkLight.o src/TPLinkSwitch.o src/BaseItem.o src/BaseSwitch.o src/BaseLight.o src/GoveeLight.o src/TasmotaLight.o src/TasmotaSwitch.o src/TapoItem.o src/TapoLight.o src/TapoSwitch.o
 LIBS_fpp_tplink_so += -L/opt/fpp/src -lfpp
 CXXFLAGS_src/tplinkPlugin.o += -I/opt/fpp/src
 
