@@ -1,4 +1,4 @@
-#include "fpp-pch.h"
+#include <fpp-pch.h>
 
 #include <fstream>
 #include <sstream>
@@ -18,7 +18,7 @@
 #include <thread>
 #include <cmath>
 
-#include <httpserver.hpp>
+//#include <httpserver.hpp>
 #include "common.h"
 #include "settings.h"
 #include "Plugin.h"
