@@ -58,8 +58,16 @@ function AddTPLinkItem(type) {
     if(type == 'tasmotalight') {html += " selected ";}
     html += ">Tasmota Light</option><option value='tasmotaswitch'";
     if(type == 'tasmotaswitch') {html += " selected ";}
-    html += ">Tasmota Switch</option></select>";
-    html += "<td><input type='number' value='0' min='0' max='10' class='plugnum' />";
+    html += ">Tasmota Switch</option><option value='tapolight'";
+    if(type == 'tapolight') {html += " selected ";}
+    html += ">Tapo Light</option><option value='taposwitch'";
+    if(type == 'taposwitch') {html += " selected ";}
+    html += ">Tapo Switch</option></select>";
+    var plugDisplay = (type == 'switch' || type == 'tasmotaswitch' || type == 'taposwitch') ? '' : 'display: none;';
+    html += "<td><input type='number' value='0' min='0' max='10' class='plugnum' style='" + plugDisplay + "' />";
+    var tapoDisplay = (type == 'tapolight' || type == 'taposwitch') ? '' : 'display: none;';
+    html += "<td><input type='text' size='20' class='username' placeholder='Email' style='" + tapoDisplay + "' />";
+    html += "<td><input type='password' size='20' class='password' placeholder='Password' style='" + tapoDisplay + "' />";
     html += "</tr>";
     //selected
     $("#tplinkTableBody").append(html);
@@ -79,11 +87,16 @@ function SaveTPLinkItem(row) {
     var plugnum = parseInt($(row).find('.plugnum').val(),10);
 	var devicetype = $(row).find('.devicetype').val();
 
+    var username = $(row).find('.username').val();
+    var password = $(row).find('.password').val();
+
     var json = {
         "ip": ip,
         "startchannel": startchan,
         "devicetype": devicetype,
-        "plugnumber": plugnum
+        "plugnumber": plugnum,
+        "username": username,
+        "password": password
     };
     return json;
 }
@@ -146,6 +159,16 @@ $(document).ready(function() {
         $(this).addClass('selectedEntry');
         EnableButtonClass('deleteEventButton');
     });
+
+    $('#tplinkTableBody').on('change', '.devicetype', function() {
+        var row = $(this).closest('tr');
+        var val = $(this).val();
+        var isTapo = (val == 'tapolight' || val == 'taposwitch');
+        var isPlug = (val == 'switch' || val == 'tasmotaswitch' || val == 'taposwitch');
+        row.find('.username').toggle(isTapo);
+        row.find('.password').toggle(isTapo);
+        row.find('.plugnum').toggle(isPlug);
+    });
 });
 
 </script>
@@ -162,7 +185,7 @@ $(document).ready(function() {
 <div class='fppTableWrapper fppTableWrapperAsTable'>
 <div class='fppTableContents'>
 <table class="fppSelectableRowTable" id="tplinkTable"  width='100%'>
-<thead><tr class="fppTableHeader"><th>#</th><th></th><th>IP</th><th>Start Chan</th><th>Device Type</th><th>Plug ID</th></tr></thead>
+<thead><tr class="fppTableHeader"><th>#</th><th></th><th>IP</th><th>Start Chan</th><th>Device Type</th><th>Plug ID</th><th>Username</th><th>Password</th></tr></thead>
 <tbody id='tplinkTableBody'>
 </tbody>
 </table>
@@ -181,6 +204,8 @@ $.each(tplinkConfig, function( key, val ) {
     $(row).find('.ipaddress').val(val["ip"]);
     $(row).find('.startchan').val(val["startchannel"]);
     $(row).find('.plugnum').val(val["plugnumber"]);
+    $(row).find('.username').val(val["username"]);
+    $(row).find('.password').val(val["password"]);
 });
 </script>
 
