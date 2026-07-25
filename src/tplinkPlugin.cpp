@@ -55,7 +55,7 @@
 
 using namespace std::chrono_literals;
 
-class TPLinkPlugin : public FPPPlugin, public httpserver::http_resource {
+class TPLinkPlugin : public FPPPlugin {
 private:
     std::vector<std::unique_ptr <BaseItem>> _TPLinkOutputs;
     Json::Value config;
