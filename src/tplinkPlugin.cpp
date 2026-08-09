@@ -1,3 +1,10 @@
+// Include drogon framework header before FPP headers to avoid
+// macro conflicts between trantor's LOG_* macros and FPP's LogLevel enum
+#include <drogon/HttpAppFramework.h>
+#undef LOG_WARN
+#undef LOG_INFO
+#undef LOG_DEBUG
+
 #include <fpp-pch.h>
 
 #include <fstream>
@@ -18,7 +25,7 @@
 #include <thread>
 #include <cmath>
 
-//#include <httpserver.hpp>
+#include "fpphttp.h"
 #include "common.h"
 #include "settings.h"
 #include "Plugin.h"
@@ -396,6 +403,23 @@ public:
         CommandManager::INSTANCE.addCommand(new TPLinkAllLightsHSVCommand(this));
         CommandManager::INSTANCE.addCommand(new TPLinkAllLightsOffCommand(this));
         CommandManager::INSTANCE.addCommand(new TPLinkAllSwitchesToggleCommand(this));
+    }
+    
+    void handleTopicsRequest(const HttpRequestPtr &req,
+                              std::function<void(const HttpResponsePtr &)> &&callback) {
+        callback(makeStringResponse(getTopics(), 200));
+    }
+
+    void unregisterApis() override {
+        // Drogon does not support route removal; routes become inactive when the plugin unloads
+    }
+    void registerApis() override {
+        drogon::app().registerHandler(
+            "/TPLink",
+            [this](const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+                handleTopicsRequest(req, std::move(callback));
+            },
+            { drogon::Get });
     }
 
     virtual void modifySequenceData(int ms, uint8_t *seqData) override {

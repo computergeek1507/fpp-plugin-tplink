@@ -6,6 +6,7 @@
 	"homeURL": "https://github.com/computergeek1507/fpp-plugin-tplink",
 	"srcURL": "https://github.com/computergeek1507/fpp-plugin-tplink.git",
 	"bugURL": "https://github.com/computergeek1507/fpp-plugin-tplink/issues",
+	"iconURL": "https://raw.githubusercontent.com/computergeek1507/fpp-plugin-tplink/main/icon.png",
 	"allowUpdates": 1,
 	"versions": [
 		{
