@@ -411,10 +411,10 @@ public:
     }
 
     void unregisterApis() override {
-        // Drogon does not support route removal; routes become inactive when the plugin unloads
+        FPPPlugins::unregisterPluginApi("/TPLink");
     }
     void registerApis() override {
-        drogon::app().registerHandler(
+        FPPPlugins::registerPluginApi(
             "/TPLink",
             [this](const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
                 handleTopicsRequest(req, std::move(callback));
