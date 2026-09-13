@@ -193,8 +193,7 @@ $(document).ready(function() {
 
 </div>
 <div>
-<p>
-<p>
+<p><b>Plugs and switches in a sequence:</b> give a plug a start channel and the sequence switches it on and off by crossing half (127 or more is on, below 127 is off). It only acts on a change, and it never turns off a plug the sequence has not turned on. Leave the start channel at 0 to switch the plug only with commands.</p>
 </div>
 </div>
 <script>

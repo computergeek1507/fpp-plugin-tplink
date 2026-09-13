@@ -7,8 +7,7 @@
 
 BaseSwitch::BaseSwitch(std::string const& ip, unsigned int startChannel, int plug_num) :
 BaseItem(ip,startChannel),
-m_plug_num(plug_num),
-m_w(0)
+m_plug_num(plug_num)
 {
 }
 
@@ -29,19 +28,23 @@ bool BaseSwitch::SendData( unsigned char *data) {
         }
 
         uint8_t w = data[m_startChannel - 1];
+        uint8_t newState = (w >= 127) ? 1 : 2;  // 1 = on, 2 = off
 
-        if(w == m_w ) {
-            if(m_seqCount < 1201) {
-                ++ m_seqCount;
-                return true;
-            }
+        // Only act when the ON/OFF state changes. Until the sequence has
+        // turned a plug on, an OFF value does nothing: a plug switched on
+        // by a command or Home Assistant stays on while the sequence holds
+        // its channel at 0.
+        if(newState == m_relayState) {
+            return true;
         }
-        m_seqCount=0;
-        m_w = w;
+        if(m_relayState == 0 && newState == 2) {
+            // Unknown state + below half: leave the plug alone.
+            return true;
+        }
+        m_relayState = newState;
 
         std::thread t(&BaseSwitch::outputData, this, w );
         t.detach();
-        //outputData(w );
         return true;
     }
     catch(std::exception const& ex)
