@@ -15,6 +15,8 @@ TapoSwitch::TapoSwitch(std::string const& ip, unsigned int startChannel, int plu
 }
 
 TapoSwitch::~TapoSwitch() {
+    // The sequence sender calls into this object; stop it first.
+    StopSequenceControl();
 }
 
 std::string TapoSwitch::GetConfigString() const {

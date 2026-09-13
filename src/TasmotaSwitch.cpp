@@ -26,6 +26,8 @@ TasmotaSwitch::TasmotaSwitch(std::string const& ip, unsigned int startChannel, i
 }
 
 TasmotaSwitch::~TasmotaSwitch() {
+    // The sequence sender uses m_curl; stop it before the handle goes away.
+    StopSequenceControl();
     if (m_curl) {
         curl_easy_cleanup(m_curl);
     }
