@@ -10,6 +10,8 @@ public:
 
     bool SendData( unsigned char *data) override;
 
+    void EnableOutput() override;
+
     virtual bool setRelayOn() = 0;
     virtual bool setRelayOff() = 0;
 
@@ -22,7 +24,7 @@ protected:
     virtual void outputData( uint8_t w );
 
 private:
-    // The ON/OFF state the sequence last drove the plug to.
-    // 0 = unknown (no sequence has turned it on yet), 1 = on, 2 = off.
+    // The ON/OFF state last sent by the sequence.
+    // 0 = not yet sent (send on the next frame), 1 = on, 2 = off.
     uint8_t m_relayState{0};
 };

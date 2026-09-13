@@ -15,6 +15,11 @@ BaseSwitch::~BaseSwitch() {
 
 }
 
+void BaseSwitch::EnableOutput() {
+    BaseItem::EnableOutput();
+    // A new sequence is starting: send the plug's state on the very next frame.
+    m_relayState = 0;
+}
 
 bool BaseSwitch::SendData( unsigned char *data) {
     try
@@ -30,15 +35,11 @@ bool BaseSwitch::SendData( unsigned char *data) {
         uint8_t w = data[m_startChannel - 1];
         uint8_t newState = (w >= 127) ? 1 : 2;  // 1 = on, 2 = off
 
-        // Only act when the ON/OFF state changes. Until the sequence has
-        // turned a plug on, an OFF value does nothing: a plug switched on
-        // by a command or Home Assistant stays on while the sequence holds
-        // its channel at 0.
+        // A start channel means the sequence owns the plug. On the first
+        // frame after a sequence starts (m_relayState == 0) we always send,
+        // even if the channel is 0. After that we send only when the ON/OFF
+        // state changes. No periodic re-send.
         if(newState == m_relayState) {
-            return true;
-        }
-        if(m_relayState == 0 && newState == 2) {
-            // Unknown state + below half: leave the plug alone.
             return true;
         }
         m_relayState = newState;
