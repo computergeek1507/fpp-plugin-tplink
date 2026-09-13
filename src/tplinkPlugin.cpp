@@ -66,6 +66,9 @@ class TPLinkPlugin : public FPPPlugin {
 private:
     std::vector<std::unique_ptr <BaseItem>> _TPLinkOutputs;
     Json::Value config;
+    // Commands registered with CommandManager. addCommand() does not take
+    // ownership, so these are withdrawn and deleted again in shutdown().
+    std::vector<Command*> _commands;
 
 public:
     TPLinkPlugin() : FPPPlugin("fpp-plugin-tplink") {
@@ -392,17 +395,39 @@ public:
     };
 
     void registerCommand() {
-        CommandManager::INSTANCE.addCommand(new TPLinkSetSwitchCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkToggleSwitchCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkSetLightRGBCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkSetLightHSVCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkSetLightOffCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkAllSwitchesOnCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkAllSwitchesOffCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkAllLightsRGBCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkAllLightsHSVCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkAllLightsOffCommand(this));
-        CommandManager::INSTANCE.addCommand(new TPLinkAllSwitchesToggleCommand(this));
+        _commands.push_back(new TPLinkSetSwitchCommand(this));
+        _commands.push_back(new TPLinkToggleSwitchCommand(this));
+        _commands.push_back(new TPLinkSetLightRGBCommand(this));
+        _commands.push_back(new TPLinkSetLightHSVCommand(this));
+        _commands.push_back(new TPLinkSetLightOffCommand(this));
+        _commands.push_back(new TPLinkAllSwitchesOnCommand(this));
+        _commands.push_back(new TPLinkAllSwitchesOffCommand(this));
+        _commands.push_back(new TPLinkAllLightsRGBCommand(this));
+        _commands.push_back(new TPLinkAllLightsHSVCommand(this));
+        _commands.push_back(new TPLinkAllLightsOffCommand(this));
+        _commands.push_back(new TPLinkAllSwitchesToggleCommand(this));
+        for (Command* c : _commands) {
+            CommandManager::INSTANCE.addCommand(c);
+        }
+    }
+
+    // Called by FPP once the plugin's HTTP routes are disarmed and before the
+    // plugin object is destroyed (plugin API 6). removeCommand() only
+    // unregisters, so the commands are ours to delete here; anything left
+    // behind would be a call into this plugin after it is gone.
+    //
+    // The toggle commands sleep for up to 10s inside run() before calling
+    // back into this object, and BaseSwitch/BaseLight send on detached
+    // threads bounded by the ~7s TCP connect timeout, so ask FPP to hold
+    // off destroying the object long enough for those to drain.
+    virtual std::function<bool()> shutdown() override {
+        for (Command* c : _commands) {
+            CommandManager::INSTANCE.removeCommand(c);
+            delete c;
+        }
+        _commands.clear();
+        long long until = GetTimeMS() + 12000;
+        return [until]() { return GetTimeMS() >= until; };
     }
     
     void handleTopicsRequest(const HttpRequestPtr &req,
