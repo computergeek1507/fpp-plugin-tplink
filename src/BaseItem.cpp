@@ -19,7 +19,7 @@
 BaseItem::BaseItem(std::string const& ip, unsigned int startChannel) :
     m_ipAddress(ip),
     m_startChannel(startChannel),
-    m_seqCount(0),
+    m_seqCount(2000),
     m_unreachable(false),
     m_issending(false)
 {
