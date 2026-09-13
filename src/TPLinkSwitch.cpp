@@ -1,32 +1,18 @@
 #include "TPLinkSwitch.h"
 
+#include "core/KasaProtocol.h"
+
 #include "fpp-pch.h"
 #include "common.h"
 #include "settings.h"
 
-#include <stdlib.h>
-#include <cstdint>
-#include <thread>
-#include <cmath>
-
-#include <arpa/inet.h>  // for inet_pton
-#include <netinet/in.h> // for sockaddr_in, htons
-#include <stdint.h>     // for uint16_t, uint8_t, uint32_t
-#include <stdio.h>      // for printf
-#include <sys/socket.h> // for AF_INET, connect, send, socket, SOCK_STREAM
-#include <unistd.h>     // for close, read
-#include <string>       // for string
-#include <cstring>      // for ??? memcpy, memset, strncpy
-
-
-#include <iostream>
-#include <istream>
-#include <ostream>
+#include <exception>
+#include <string>
 
 TPLinkSwitch::TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num) :
 BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseSwitch(ip,startChannel,plug_num)
 {
-    m_deviceId = getDeviceId(plug_num);
+    m_deviceId = getDeviceId(plug_num, nullptr);
 }
 
 TPLinkSwitch::~TPLinkSwitch() {
@@ -36,39 +22,27 @@ TPLinkSwitch::~TPLinkSwitch() {
 
 std::string TPLinkSwitch::GetConfigString() const
 {
-    return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType() + 
-    " Plug Number: " + std::to_string(m_plug_num) + " Device ID: " + m_deviceId;
+    return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) + " Device Type: " + GetType() +
+    " Plug Number: " + std::to_string(m_plug_num) + " Device ID: " + deviceId();
 }
 
-std::string TPLinkSwitch::getDeviceId(int plug_num) {
+std::string TPLinkSwitch::deviceId() const {
+    std::lock_guard<std::mutex> lock(m_deviceIdMutex);
+    return m_deviceId;
+}
 
+std::string TPLinkSwitch::getDeviceId(int plug_num, std::atomic<bool> const* cancel) {
     try {
-        if(plug_num == 0) {
-            const std::string cmd2 = "{\"system\":{\"get_sysinfo\":{}}}";
-            auto data2 = sendCmd(cmd2);
-            if(data2.empty()){
-                LogInfo(VB_PLUGIN, "No sysinfo returned\n");
-                return "";
-            }
-            Json::Value jsonData2;
-            bool result2 = LoadJsonFromString(data2, jsonData2);
-            if(!result2 || jsonData2.size() == 0) {
-                LogInfo(VB_PLUGIN, "Invalid JSON returned %s\n", data2.c_str());
-                return "";
-            }
-            return jsonData2["system"]["get_sysinfo"]["deviceId"].asString();
-        }
-        const std::string cmd = "{\"system\":{\"get_sysinfo\":{\"children\":{}}}}";
-        std::string data = sendCmd(cmd);
-        if(data.empty()){
+        const std::string reply = sendCmd(tplink::kasa::sysinfoCommand(plug_num), cancel);
+        if (reply.empty()) {
             LogInfo(VB_PLUGIN, "No sysinfo returned\n");
             return "";
         }
-        Json::Value jsonData;
-        bool result = LoadJsonFromString(data, jsonData);
-        if(result && jsonData.size() != 0) {
-            return jsonData["system"]["get_sysinfo"]["children"][plug_num - 1]["id"].asString();
+        const std::string id = tplink::kasa::idFromSysinfo(reply, plug_num);
+        if (id.empty()) {
+            LogInfo(VB_PLUGIN, "No device id for plug %d in sysinfo %s\n", plug_num, reply.c_str());
         }
+        return id;
     }
     catch(std::exception const& ex) {
         LogInfo(VB_PLUGIN, "Error %s \n",ex.what());
@@ -77,40 +51,45 @@ std::string TPLinkSwitch::getDeviceId(int plug_num) {
 }
 
 bool TPLinkSwitch::setRelayOn() {
-    const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":1}}}";
-    return !sendCmd(appendPlugData(cmd)).empty();
+    return sendRelayCommand(true, nullptr);
 }
 
 bool TPLinkSwitch::setRelayOff() {
-    const std::string cmd = "{\"system\":{\"set_relay_state\":{\"state\":0}}}";
-    return !sendCmd(appendPlugData(cmd)).empty();
+    return sendRelayCommand(false, nullptr);
+}
+
+bool TPLinkSwitch::sendRelayState(bool on, std::atomic<bool> const& stop) {
+    return sendRelayCommand(on, &stop);
+}
+
+bool TPLinkSwitch::sendRelayCommand(bool on, std::atomic<bool> const* cancel) {
+    return !sendCmd(appendPlugData(tplink::kasa::relayStateCommand(on), cancel), cancel).empty();
 }
 
 bool TPLinkSwitch::setLedOff() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":1}}}";
-    return !sendCmd(appendPlugData(cmd)).empty();
+    return !sendCmd(appendPlugData(cmd, nullptr)).empty();
 }
 
 bool TPLinkSwitch::setLedOn() {
     const std::string cmd = "{\"system\":{\"set_led_off\":{\"off\":0}}}";
-    return !sendCmd(appendPlugData(cmd)).empty();
+    return !sendCmd(appendPlugData(cmd, nullptr)).empty();
 }
 
-
-std::string TPLinkSwitch::appendPlugData(std::string cmd) {
-
-    if(m_plug_num != 0) {
-        if(m_deviceId.empty()) {
-            m_deviceId = getDeviceId(m_plug_num);
-        }
-        if(m_deviceId.empty()) {
-            LogInfo(VB_PLUGIN, "DeviceId is empty for %s \n", m_ipAddress.c_str());
-        }
-
-        cmd.erase(0, 1);//remove first parentheses
-        cmd = "{\"context\":{\"child_ids\":[\"" + m_deviceId + "\"]}," + cmd;
+std::string TPLinkSwitch::appendPlugData(std::string const& cmd, std::atomic<bool> const* cancel) {
+    if (m_plug_num == 0) {
+        return cmd;
     }
-    return cmd;
+    std::string id = deviceId();
+    if (id.empty()) {
+        id = getDeviceId(m_plug_num, cancel);
+        if (!id.empty()) {
+            std::lock_guard<std::mutex> lock(m_deviceIdMutex);
+            m_deviceId = id;
+        }
+    }
+    if (id.empty()) {
+        LogInfo(VB_PLUGIN, "DeviceId is empty for %s \n", m_ipAddress.c_str());
+    }
+    return tplink::kasa::addressedCommand(cmd, m_plug_num, id);
 }
-
-

@@ -18,14 +18,11 @@ public:
     std::string getInfo();
 
 protected:
-    std::string sendCmd(std::string const& cmd);
+    // Sends one command and returns the plug's decrypted reply, or "" when it
+    // fails. When `cancel` is given, a slow exchange gives up as soon as it
+    // turns true.
+    std::string sendCmd(std::string const& cmd, std::atomic<bool> const* cancel = nullptr);
 
 private:
     uint16_t m_port{9999};
-    static void serializeUint32(char (&buf)[4], uint32_t val);
-    static void encrypt(char *data, uint16_t length);
-    static void encryptWithHeader(char *out, char *data, uint16_t length);
-    static void decrypt(char* input, uint16_t length);
-    uint16_t sockConnect(char* out, const char *ip_add, int port, const char *cmd, uint16_t length);
-
 };

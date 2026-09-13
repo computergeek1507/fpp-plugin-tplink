@@ -17,3 +17,7 @@ In more detail, for TPLink Switch/Plug, Tasmota Switch and Tapo Switch entries:
 - Leave the start channel at 0 for plugs you control with commands (playlist lead-ins, Home Assistant).
 
 The commands (TPLink Set Switch, TPLink Toggle Switch, TPLink All Switches On, Off and Toggle) work as before.
+
+## Tests
+
+The flip rule, the per-plug sender and the Kasa protocol code live in `src/core` and build without FPP. `make -C tests` builds and runs their unit tests on macOS or Linux, against a fake plug on 127.0.0.1.

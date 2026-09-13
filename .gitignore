@@ -31,3 +31,7 @@
 *.out
 *.app
 .vscode/settings.json
+
+# Unit test binary
+tests/tplink_tests
+tests/*.dSYM/

@@ -2,6 +2,8 @@
 #include "BaseSwitch.h"
 #include "TPLinkItem.h"
 
+#include <atomic>
+#include <mutex>
 #include <string>
 
 class TPLinkSwitch : public TPLinkItem, public BaseSwitch{
@@ -18,10 +20,16 @@ public:
     std::string GetType() const override { return "TPLinkSwitch"; }
     std::string GetConfigString() const override;
 
+protected:
+    bool sendRelayState(bool on, std::atomic<bool> const& stop) override;
+
 private:
-    //int m_plug_num;
+    // The sequence sender and the All Switches commands can both read and fill it.
+    mutable std::mutex m_deviceIdMutex;
     std::string m_deviceId;
 
-    std::string getDeviceId(int plug_num);
-    std::string appendPlugData(std::string cmd);
+    std::string deviceId() const;
+    std::string getDeviceId(int plug_num, std::atomic<bool> const* cancel);
+    std::string appendPlugData(std::string const& cmd, std::atomic<bool> const* cancel);
+    bool sendRelayCommand(bool on, std::atomic<bool> const* cancel);
 };
