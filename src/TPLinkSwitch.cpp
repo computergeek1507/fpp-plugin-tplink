@@ -30,7 +30,8 @@ BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseSwitch(ip,startChann
 }
 
 TPLinkSwitch::~TPLinkSwitch() {
-
+    // The sequence sender calls into this object; stop it before anything here goes away.
+    StopSequenceControl();
 }
 
 std::string TPLinkSwitch::GetConfigString() const
