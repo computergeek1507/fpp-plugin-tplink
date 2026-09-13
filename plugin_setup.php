@@ -193,8 +193,7 @@ $(document).ready(function() {
 
 </div>
 <div>
-<p>
-<p>
+<p><b>Plugs and switches in a sequence:</b> a start channel means the sequence owns the plug. When a playlist starts, the plug is sent the channel's state on the first frame. After that the plugin sends only when the state changes (127 or more is on, below 127 is off). Leave the start channel at 0 for plugs you control with commands (playlist lead-ins, Home Assistant).</p>
 </div>
 </div>
 <script>
