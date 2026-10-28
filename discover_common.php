@@ -96,6 +96,18 @@ function tplinkSuggestType($family, $encrypt, $deviceType) {
     return 'Not supported (' . $deviceType . ')';
 }
 
+// The plugin's devicetype value (as in plugin.tplink.json) for a suggestion
+// from tplinkSuggestType(), or "" when the plugin can't drive the device.
+function tplinkTypeCode($suggestion) {
+    $codes = array(
+        'TPLink Light' => 'light',
+        'TPLink Switch/Plug' => 'switch',
+        'Tapo Light' => 'tapolight',
+        'Tapo Switch' => 'taposwitch',
+    );
+    return isset($codes[$suggestion]) ? $codes[$suggestion] : '';
+}
+
 // Broadcasts the probes a few times over `$seconds` and returns what answered,
 // keyed by IP. `$targets` and `$ports` can be overridden for testing.
 function tplinkDiscover($seconds = 3.0, $targets = null, $ports = null) {
@@ -175,6 +187,9 @@ function tplinkDiscover($seconds = 3.0, $targets = null, $ports = null) {
                         'suggest' => tplinkSuggestType('tdp', $enc, $r['device_type']),
                     );
                 }
+            }
+            if ($dev !== null) {
+                $dev['code'] = tplinkTypeCode($dev['suggest']);
             }
             // A legacy reply carries the name, so it wins over a TDP one.
             if ($dev !== null && (!isset($found[$dev['ip']]) || $dev['name'] != '')) {

@@ -13,12 +13,16 @@ check(isset($kasa['127.0.0.1']), "legacy device found");
 $d = $kasa['127.0.0.1'];
 check($d['name'] == 'Porch Strip' && $d['model'] == 'HS300(US)' && $d['outlets'] == 3, "legacy fields");
 check($d['suggest'] == 'TPLink Switch/Plug', "legacy suggestion");
+check($d['code'] == 'switch', "legacy devicetype code");
 
 $tapo = tplinkDiscover(1.0, array('127.0.0.1'), array('legacy' => array(), 'tdp' => array($tdpPort)));
 check(isset($tapo['127.0.0.1']), "Tapo device found");
 $d = $tapo['127.0.0.1'];
 check($d['model'] == 'P110(US)' && $d['type'] == 'SMART.TAPOPLUG' && $d['protocol'] == 'KLAP', "Tapo fields");
 check($d['suggest'] == 'Tapo Switch', "Tapo suggestion");
+check($d['code'] == 'taposwitch', "Tapo devicetype code");
+check(tplinkTypeCode('Tapo Light') == 'tapolight' && tplinkTypeCode('TPLink Light') == 'light', "light codes");
+check(tplinkTypeCode(tplinkSuggestType('tdp', 'AES', 'SMART.TAPOPLUG')) == '', "unsupported has no code");
 
 echo "suggested plugin types\n";
 check(tplinkSuggestType('tdp', 'KLAP', 'SMART.TAPOBULB') == 'Tapo Light', "bulb");
