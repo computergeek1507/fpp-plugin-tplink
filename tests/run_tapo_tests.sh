@@ -41,4 +41,9 @@ done
 # The settings page's PHP must produce the same hashes as python-kasa.
 if command -v php >/dev/null; then
     php test_tapo_account.php "$EXPECT_V1_B64" "$EXPECT_V2_B64"
+    "$PYTHON" fake_discovery.py 19999 20012 &
+    DISCO=$!
+    trap 'kill $SERVER $DISCO 2>/dev/null' EXIT
+    sleep 0.5
+    php test_discovery.php 19999 20012
 fi
