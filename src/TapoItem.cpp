@@ -9,7 +9,7 @@ TapoItem::TapoItem(std::string const& ip, unsigned int startChannel, tplink::tap
     m_client(tplink::tapo::Client::shared(ip, credentials))
 {
     if (credentials.empty()) {
-        LogWarn(VB_PLUGIN, "Tapo %s: no Tapo account set; enter the Tapo email and password in the plugin settings\n",
+        LogWarn(VB_PLUGIN, "Tapo %s: no Kasa/Tapo account set; enter it on the plugin's settings page\n",
                 ip.c_str());
     }
 }

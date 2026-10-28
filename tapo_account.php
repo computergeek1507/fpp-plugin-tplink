@@ -14,7 +14,7 @@ $email = isset($_POST['email']) ? trim($_POST['email']) : "";
 $password = isset($_POST['password']) ? $_POST['password'] : "";
 if ($email === "" || $password === "") {
     http_response_code(400);
-    echo json_encode(array("ok" => false, "error" => "Enter both the Tapo email and password"));
+    echo json_encode(array("ok" => false, "error" => "Enter both the Kasa/Tapo account email and password"));
     return;
 }
 if (!tapoSaveAccount($email, $password)) {

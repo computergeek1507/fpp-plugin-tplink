@@ -22,7 +22,7 @@ The commands (TPLink Set Switch, TPLink Toggle Switch, TPLink All Switches On, O
 
 Tapo plugs, power strips and bulbs are controlled directly over the local network (TP-Link's KLAP protocol on port 80), with no cloud and no Python. Commands take a few tens of milliseconds once a session is open; the session is kept and reused for hours.
 
-- Enter your Tapo account (the email and password you use in the Tapo app) once, under **Tapo Account** on the plugin's settings page. Every Tapo device uses it.
+- Enter your TP-Link ID (the email and password you use in the Kasa or Tapo app) once, under **Kasa/Tapo Account** on the plugin's settings page. Every Tapo device, and every Kasa device on KLAP, uses it.
 - The password itself is not stored. The plugin keeps only the hash of the email and password that the devices check during login (`TapoAuthV1`/`TapoAuthV2`), so the Tapo account password never sits on the FPP box or in its backups. The hash still lets FPP control your devices on the local network, so treat backups as you would any device credential.
 - Newer Tapo firmware only allows local control after you turn on **Third-Party Compatibility** in the Tapo app (Me → Third-Party Services).
 - For a power strip, set the Plug ID to the outlet number (1, 2, 3...). Plug ID 0 switches the whole strip.
@@ -30,7 +30,7 @@ Tapo plugs, power strips and bulbs are controlled directly over the local networ
 
 ### Kasa devices on KLAP
 
-Some Kasa plugs and bulbs (for example HS100 hardware 4.1 or KP125M) closed the old TCP 9999 port in a firmware update and now take their usual commands over KLAP. Add them as **TPLink Switch/Plug** or **TPLink Light** as usual: when port 9999 refuses the connection, the plugin switches that device to KLAP by itself and logs it. These devices log in with the same account entered under **Tapo Account** (your TP-Link ID, which the Kasa app also uses), or with the Kasa factory default if they still accept it.
+Some Kasa plugs and bulbs (for example HS100 hardware 4.1 or KP125M) closed the old TCP 9999 port in a firmware update and now take their usual commands over KLAP. Add them as **TPLink Switch/Plug** or **TPLink Light** as usual: when port 9999 refuses the connection, the plugin switches that device to KLAP by itself and logs it. These devices log in with the account entered under **Kasa/Tapo Account**, or with the Kasa factory default if they still accept it.
 
 ## Tests
 

@@ -681,7 +681,7 @@ public:
                     std::string const u = config[i].get("username", "").asString();
                     if (!u.empty()) {
                         _tapoCredentials = tplink::tapo::Credentials::fromPassword(u, config[i].get("password", "").asString());
-                        LogInfo(VB_PLUGIN, "Using the Tapo account from entry %u; save it in the plugin's Tapo Account settings\n", i + 1);
+                        LogInfo(VB_PLUGIN, "Using the Tapo account from entry %u; save it under Kasa/Tapo Account in the plugin's settings\n", i + 1);
                         break;
                     }
                 }

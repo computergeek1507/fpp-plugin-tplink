@@ -343,7 +343,7 @@ std::string describeError(long long code) {
     case -1501:
     case 1111:
     case 1003:
-        text += " (login failed; check the Tapo email and password)";
+        text += " (login failed; check the Kasa/Tapo account email and password)";
         break;
     case 9999:
     case -40401:
@@ -569,7 +569,7 @@ bool Client::handshake(Options const& options, std::string* error) {
     }
     if (!matched) {
         return fail(error,
-                    "the device did not accept the Tapo email/password (both are case-sensitive). "
+                    "the device did not accept the Kasa/Tapo account email/password (both are case-sensitive). "
                     "If they are right, turn on Third-Party Compatibility in the Tapo app");
     }
 

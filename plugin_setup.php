@@ -58,13 +58,13 @@ $pluginJson = convertAndGetSettings();
 
 <div id="tapoAccount" class="settings">
 <fieldset>
-<legend>Tapo Account</legend>
-<p>All Tapo devices use this account: the email and password you sign in to the Tapo app with (both are case-sensitive). Newer Tapo firmware also needs Third-Party Compatibility turned on in the Tapo app (Me &rarr; Third-Party Services).</p>
+<legend>Kasa/Tapo Account</legend>
+<p>Tapo devices, and Kasa devices whose firmware has moved to TP-Link's newer KLAP protocol, log in with this account: the TP-Link ID email and password you sign in to the Kasa or Tapo app with (both are case-sensitive). Kasa devices on the older protocol don't need it. Newer Tapo firmware also needs Third-Party Compatibility turned on in the Tapo app (Me &rarr; Third-Party Services).</p>
 <p>The password is not stored. Saving keeps only a hash of the email and password that the devices check, which lets FPP control them but cannot be turned back into your password.</p>
 <table border=0>
 <tr><td>Email:</td><td><input type='text' id='tapoEmail' size='32' maxlength='128' autocomplete='username' value='<? echo htmlspecialchars($tapoEmail, ENT_QUOTES, 'UTF-8'); ?>' /></td></tr>
 <tr><td>Password:</td><td><input type='password' id='tapoPassword' size='32' maxlength='128' autocomplete='new-password' placeholder='<? echo $tapoHaveHash ? "Saved (enter to change)" : "Not set"; ?>' /></td></tr>
-<tr><td></td><td><input type='button' class='buttons genericButton' value='Save Tapo Account' onclick='SaveTapoAccount();' /> <span id='tapoAccountStatus'></span></td></tr>
+<tr><td></td><td><input type='button' class='buttons genericButton' value='Save Kasa/Tapo Account' onclick='SaveTapoAccount();' /> <span id='tapoAccountStatus'></span></td></tr>
 </table>
 <script>
 function SaveTapoAccount() {
