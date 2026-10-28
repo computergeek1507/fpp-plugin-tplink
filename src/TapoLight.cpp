@@ -4,8 +4,8 @@
 #include <string>
 
 TapoLight::TapoLight(std::string const& ip, unsigned int startChannel,
-                     std::string const& username, std::string const& password) :
-    BaseItem(ip, startChannel), TapoItem(ip, startChannel, username, password),
+                     tplink::tapo::Credentials const& credentials) :
+    BaseItem(ip, startChannel), TapoItem(ip, startChannel, credentials),
     BaseLight(ip, startChannel)
 {
 }

@@ -18,6 +18,9 @@ from kasa.transports.klaptransport import KlapTransport, KlapTransportV2, KlapEn
 c = Credentials("a@b.c", "pw")
 print("export EXPECT_V2_AUTH=" + KlapTransportV2.generate_auth_hash(c).hex())
 print("export EXPECT_V1_AUTH=" + KlapTransport.generate_auth_hash(c).hex())
+import base64
+print("export EXPECT_V1_B64=" + base64.b64encode(KlapTransport.generate_auth_hash(c)).decode())
+print("export EXPECT_V2_B64=" + base64.b64encode(KlapTransportV2.generate_auth_hash(c)).decode())
 s = KlapEncryptionSession(b"\x01" * 16, b"\x02" * 16, KlapTransportV2.generate_auth_hash(c))
 enc, seq = s.encrypt(b'{"method":"get_device_info"}')
 print("export EXPECT_SEQ=%d" % seq)
@@ -34,3 +37,8 @@ for _ in $(seq 50); do
 done
 
 ./tapo_tests "$PORT"
+
+# The settings page's PHP must produce the same hashes as python-kasa.
+if command -v php >/dev/null; then
+    php test_tapo_account.php "$EXPECT_V1_B64" "$EXPECT_V2_B64"
+fi

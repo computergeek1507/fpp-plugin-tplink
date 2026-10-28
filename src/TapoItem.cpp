@@ -4,12 +4,11 @@
 
 #include <exception>
 
-TapoItem::TapoItem(std::string const& ip, unsigned int startChannel,
-                   std::string const& username, std::string const& password) :
+TapoItem::TapoItem(std::string const& ip, unsigned int startChannel, tplink::tapo::Credentials const& credentials) :
     BaseItem(ip, startChannel),
-    m_client(tplink::tapo::Client::shared(ip, username, password))
+    m_client(tplink::tapo::Client::shared(ip, credentials))
 {
-    if (username.empty()) {
+    if (credentials.empty()) {
         LogWarn(VB_PLUGIN, "Tapo %s: no Tapo account set; enter the Tapo email and password in the plugin settings\n",
                 ip.c_str());
     }

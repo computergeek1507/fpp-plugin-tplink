@@ -6,7 +6,7 @@
 class TapoLight : public TapoItem, public BaseLight {
 public:
     TapoLight(std::string const& ip, unsigned int startChannel,
-              std::string const& username, std::string const& password);
+              tplink::tapo::Credentials const& credentials);
     virtual ~TapoLight();
 
     std::string GetType() const override { return "TapoLight"; }

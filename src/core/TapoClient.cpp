@@ -355,18 +355,38 @@ std::string describeError(long long code) {
     return text;
 }
 
+Credentials Credentials::fromPassword(std::string const& email, std::string const& password) {
+    Credentials c;
+    c.authV1 = klap::authHash(klap::Version::V1, email, password);
+    c.authV2 = klap::authHash(klap::Version::V2, email, password);
+    return c;
+}
+
+Credentials Credentials::fromBase64(std::string const& authV1, std::string const& authV2) {
+    Credentials c;
+    if (!klap::base64Decode(authV1, c.authV1) || c.authV1.size() != 16) {
+        c.authV1.clear();
+    }
+    if (!klap::base64Decode(authV2, c.authV2) || c.authV2.size() != 32) {
+        c.authV2.clear();
+    }
+    return c;
+}
+
+Client::Client(std::string const& host, Credentials const& credentials, uint16_t port) :
+    m_host(host), m_port(port), m_credentials(credentials), m_terminalUuid(newTerminalUuid()) {}
+
 Client::Client(std::string const& host, std::string const& username, std::string const& password, uint16_t port) :
-    m_host(host), m_port(port), m_username(username), m_password(password), m_terminalUuid(newTerminalUuid()) {}
+    Client(host, Credentials::fromPassword(username, password), port) {}
 
 Client::~Client() = default;
 
-std::shared_ptr<Client> Client::shared(std::string const& host, std::string const& username,
-                                       std::string const& password, uint16_t port) {
+std::shared_ptr<Client> Client::shared(std::string const& host, Credentials const& credentials, uint16_t port) {
     static std::mutex registryMutex;
     static std::map<std::tuple<std::string, uint16_t, std::string, std::string>, std::weak_ptr<Client>> registry;
 
     std::lock_guard<std::mutex> lock(registryMutex);
-    const auto key = std::make_tuple(host, port, username, password);
+    const auto key = std::make_tuple(host, port, credentials.authV1, credentials.authV2);
     auto it = registry.find(key);
     if (it != registry.end()) {
         if (auto existing = it->second.lock()) {
@@ -377,7 +397,7 @@ std::shared_ptr<Client> Client::shared(std::string const& host, std::string cons
     for (auto i = registry.begin(); i != registry.end();) {
         i = i->second.expired() ? registry.erase(i) : std::next(i);
     }
-    auto client = std::make_shared<Client>(host, username, password, port);
+    auto client = std::make_shared<Client>(host, credentials, port);
     registry[key] = client;
     return client;
 }
@@ -524,23 +544,19 @@ bool Client::handshake(Options const& options, std::string* error) {
 
     // Which account and protocol version the device answered for, in the order
     // python-kasa tries them: ours, then the factory defaults, then blank.
-    struct Candidate {
-        std::string user;
-        std::string pass;
-    };
-    std::vector<Candidate> candidates;
-    candidates.push_back({m_username, m_password});
-    candidates.push_back({"test@tp-link.net", "test"});       // Tapo factory default
-    candidates.push_back({"kasa@tp-link.net", "kasaSetup"});  // Kasa factory default
-    candidates.push_back({"", ""});
+    std::vector<Credentials> candidates;
+    candidates.push_back(m_credentials);
+    candidates.push_back(Credentials::fromPassword("test@tp-link.net", "test"));       // Tapo factory default
+    candidates.push_back(Credentials::fromPassword("kasa@tp-link.net", "kasaSetup"));  // Kasa factory default
+    candidates.push_back(Credentials::fromPassword("", ""));
 
     std::string authHash;
     klap::Version version = klap::Version::V2;
     bool matched = false;
     for (auto const& c : candidates) {
         for (klap::Version v : {klap::Version::V2, klap::Version::V1}) {
-            const std::string hash = klap::authHash(v, c.user, c.pass);
-            if (klap::handshake1Hash(v, localSeed, remoteSeed, hash) == serverHash) {
+            std::string const& hash = v == klap::Version::V2 ? c.authV2 : c.authV1;
+            if (!hash.empty() && klap::handshake1Hash(v, localSeed, remoteSeed, hash) == serverHash) {
                 authHash = hash;
                 version = v;
                 matched = true;

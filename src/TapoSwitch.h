@@ -11,7 +11,7 @@
 class TapoSwitch : public TapoItem, public BaseSwitch {
 public:
     TapoSwitch(std::string const& ip, unsigned int startChannel, int plug_num,
-               std::string const& username, std::string const& password);
+               tplink::tapo::Credentials const& credentials);
     virtual ~TapoSwitch();
 
     bool setRelayOn() override;

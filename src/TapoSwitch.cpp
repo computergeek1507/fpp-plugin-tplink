@@ -5,8 +5,8 @@
 #include <string>
 
 TapoSwitch::TapoSwitch(std::string const& ip, unsigned int startChannel, int plug_num,
-                       std::string const& username, std::string const& password) :
-    BaseItem(ip, startChannel), TapoItem(ip, startChannel, username, password),
+                       tplink::tapo::Credentials const& credentials) :
+    BaseItem(ip, startChannel), TapoItem(ip, startChannel, credentials),
     BaseSwitch(ip, startChannel, plug_num)
 {
 }

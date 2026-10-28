@@ -18,6 +18,19 @@ class Cipher;
 // carrying TP-Link's "SMART" JSON requests. Nothing here depends on FPP.
 namespace tapo {
 
+// What the client authenticates with: the KLAP auth hashes, never the
+// password itself. v2 is what Tapo devices check, v1 what Kasa devices on KLAP
+// check. Either may be empty.
+struct Credentials {
+    std::string authV1;  // md5(md5(email) + md5(password)), 16 bytes
+    std::string authV2;  // sha256(sha1(email) + sha1(password)), 32 bytes
+
+    static Credentials fromPassword(std::string const& email, std::string const& password);
+    // From the base64 text the settings page stores. Bad base64 gives an empty hash.
+    static Credentials fromBase64(std::string const& authV1, std::string const& authV2);
+    bool empty() const { return authV1.empty() && authV2.empty(); }
+};
+
 struct Options {
     std::chrono::milliseconds connectTimeout{3000};
     // How long one HTTP exchange (request and whole reply) may take.
@@ -28,6 +41,7 @@ struct Options {
 
 class Client {
 public:
+    Client(std::string const& host, Credentials const& credentials, uint16_t port = 80);
     Client(std::string const& host, std::string const& username, std::string const& password, uint16_t port = 80);
     ~Client();
 
@@ -36,8 +50,8 @@ public:
 
     // One client per (host, port, credentials), shared by everything in the
     // process, so the plugin's devices and its commands reuse one session.
-    static std::shared_ptr<Client> shared(std::string const& host, std::string const& username,
-                                          std::string const& password, uint16_t port = 80);
+    static std::shared_ptr<Client> shared(std::string const& host, Credentials const& credentials,
+                                          uint16_t port = 80);
 
     // Sends {"method": method, "params": params} and gives back the reply's
     // "result" (null when the reply has none). `paramsJson` is a JSON object's
@@ -73,8 +87,7 @@ private:
 
     std::string m_host;
     uint16_t m_port;
-    std::string m_username;
-    std::string m_password;
+    Credentials m_credentials;
     std::string m_terminalUuid;
 
     std::mutex m_mutex;

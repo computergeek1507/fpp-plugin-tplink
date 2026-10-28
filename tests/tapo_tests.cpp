@@ -116,6 +116,32 @@ static void testHashes() {
     CHECK(plain == "{\"method\":\"get_device_info\"}");
 }
 
+static void testHashOnlyCredentials() {
+    std::puts("hash-only credentials (what the settings page stores) log in");
+    // The base64 the settings page writes for a@b.c / pw, from python-kasa.
+    tapo::Credentials fromPage = tapo::Credentials::fromBase64(std::getenv("EXPECT_V1_B64"), std::getenv("EXPECT_V2_B64"));
+    tapo::Credentials fromPassword = tapo::Credentials::fromPassword("a@b.c", "pw");
+    CHECK(fromPage.authV1 == fromPassword.authV1);
+    CHECK(fromPage.authV2 == fromPassword.authV2);
+    CHECK(tapo::Credentials::fromBase64("not base64!", "").empty());
+    CHECK(tapo::Credentials::fromBase64("", "AAAA").empty());  // wrong length
+
+    resetDevice();
+    tapo::Credentials stored = tapo::Credentials::fromBase64(
+        klap::base64(klap::authHash(klap::Version::V1, kUser, kPass)),
+        klap::base64(klap::authHash(klap::Version::V2, kUser, kPass)));
+    tapo::Client c("127.0.0.1", stored, g_port);
+    Value r;
+    std::string err;
+    CHECK(c.call("set_device_info", "{\"device_on\":true}", r, tapo::Options(), &err));
+    CHECK(flag(deviceState().member("device_on")));
+
+    resetDevice();
+    setDevice("{\"version\":1}");
+    tapo::Client v1only("127.0.0.1", tapo::Credentials::fromBase64(klap::base64(stored.authV1), ""), g_port);
+    CHECK(v1only.call("set_device_info", "{\"device_on\":true}", r, tapo::Options(), &err));
+}
+
 static void testOnOff() {
     std::puts("plug on/off, with one handshake for several requests");
     resetDevice();
@@ -258,9 +284,9 @@ static void testChunkedReplies() {
 static void testSharedClients() {
     std::puts("shared clients: one per device and account, safe across threads");
     resetDevice();
-    auto a = tapo::Client::shared("127.0.0.1", kUser, kPass, g_port);
-    auto b = tapo::Client::shared("127.0.0.1", kUser, kPass, g_port);
-    auto other = tapo::Client::shared("127.0.0.1", kUser, "different", g_port);
+    auto a = tapo::Client::shared("127.0.0.1", tapo::Credentials::fromPassword(kUser, kPass), g_port);
+    auto b = tapo::Client::shared("127.0.0.1", tapo::Credentials::fromPassword(kUser, kPass), g_port);
+    auto other = tapo::Client::shared("127.0.0.1", tapo::Credentials::fromPassword(kUser, "different"), g_port);
     CHECK(a.get() == b.get());
     CHECK(a.get() != other.get());
 
@@ -306,6 +332,7 @@ int main(int argc, char** argv) {
     g_port = static_cast<uint16_t>(std::atoi(argv[1]));
 
     testHashes();
+    testHashOnlyCredentials();
     testOnOff();
     testWrongPassword();
     testFactoryDefaultAccount();

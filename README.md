@@ -23,6 +23,7 @@ The commands (TPLink Set Switch, TPLink Toggle Switch, TPLink All Switches On, O
 Tapo plugs, power strips and bulbs are controlled directly over the local network (TP-Link's KLAP protocol on port 80), with no cloud and no Python. Commands take a few tens of milliseconds once a session is open; the session is kept and reused for hours.
 
 - Enter your Tapo account (the email and password you use in the Tapo app) once, under **Tapo Account** on the plugin's settings page. Every Tapo device uses it.
+- The password itself is not stored. The plugin keeps only the hash of the email and password that the devices check during login (`TapoAuthV1`/`TapoAuthV2`), so the Tapo account password never sits on the FPP box or in its backups. The hash still lets FPP control your devices on the local network, so treat backups as you would any device credential.
 - Newer Tapo firmware only allows local control after you turn on **Third-Party Compatibility** in the Tapo app (Me → Third-Party Services).
 - For a power strip, set the Plug ID to the outlet number (1, 2, 3...). Plug ID 0 switches the whole strip.
 - Devices on old firmware that predates KLAP are not supported; update their firmware in the Tapo app.

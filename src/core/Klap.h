@@ -57,6 +57,8 @@ std::string md5(std::string const& data);
 std::string sha1(std::string const& data);
 std::string sha256(std::string const& data);
 std::string base64(std::string const& data);
+// Decodes standard base64; false on malformed input.
+bool base64Decode(std::string const& text, std::string& out);
 
 }  // namespace klap
 }  // namespace tplink

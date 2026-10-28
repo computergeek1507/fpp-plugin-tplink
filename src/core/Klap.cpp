@@ -74,6 +74,30 @@ std::string base64(std::string const& data) {
     return out;
 }
 
+bool base64Decode(std::string const& text, std::string& out) {
+    out.clear();
+    if (text.empty()) {
+        return true;
+    }
+    if (text.size() % 4 != 0) {
+        return false;
+    }
+    std::string buf(text.size() / 4 * 3, '\0');
+    const int n = EVP_DecodeBlock(reinterpret_cast<unsigned char*>(&buf[0]),
+                                  reinterpret_cast<unsigned char const*>(text.data()), static_cast<int>(text.size()));
+    if (n < 0) {
+        return false;
+    }
+    // EVP_DecodeBlock counts padding as data; drop a byte per '='.
+    size_t length = static_cast<size_t>(n);
+    for (size_t i = text.size(); i-- > 0 && text[i] == '=' && length > 0;) {
+        --length;
+    }
+    buf.resize(length);
+    out.swap(buf);
+    return true;
+}
+
 std::string randomBytes(size_t count) {
     std::string out(count, '\0');
     if (RAND_bytes(reinterpret_cast<unsigned char*>(&out[0]), static_cast<int>(count)) != 1) {
