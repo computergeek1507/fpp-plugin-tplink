@@ -19,8 +19,9 @@
 #include <istream>
 #include <ostream>
 
-TPLinkLight::TPLinkLight(std::string const& ip, unsigned int startChannel):
- BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseLight(ip,startChannel)
+TPLinkLight::TPLinkLight(std::string const& ip, unsigned int startChannel,
+                         tplink::tapo::Credentials const& klapCredentials):
+ BaseItem(ip,startChannel), TPLinkItem(ip,startChannel,klapCredentials), BaseLight(ip,startChannel)
 
 {
 }

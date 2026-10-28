@@ -615,6 +615,36 @@ bool Client::send(std::string const& json, std::string& replyText, bool& session
     return true;
 }
 
+bool Client::exchange(std::string const& json, std::string& replyText, Options const& options, std::string* error) {
+    for (int attempt = 0; attempt < 2; ++attempt) {
+        const bool freshSession = !m_cipher || Clock::now() >= m_sessionExpires;
+        if (freshSession && !handshake(options, error)) {
+            return false;
+        }
+        bool rejected = false;
+        if (send(json, replyText, rejected, options, error)) {
+            return true;
+        }
+        if (rejected && attempt == 0) {
+            m_cipher.reset();
+            continue;
+        }
+        if (!rejected) {
+            // A dropped connection can leave the device a sequence number
+            // ahead or behind; start clean next time.
+            m_cipher.reset();
+        }
+        return false;
+    }
+    return fail(error, "the device turned the session down twice");
+}
+
+bool Client::request(std::string const& json, std::string& reply, Options const& options, std::string* error) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    reply.clear();
+    return exchange(json, reply, options, error);
+}
+
 bool Client::call(std::string const& method, std::string const& paramsJson, json::Value& result,
                   Options const& options, std::string* error) {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -622,22 +652,8 @@ bool Client::call(std::string const& method, std::string const& paramsJson, json
     const std::string request = requestJson(method, paramsJson, m_terminalUuid, nowMs());
 
     for (int attempt = 0; attempt < 2; ++attempt) {
-        const bool freshSession = !m_cipher || Clock::now() >= m_sessionExpires;
-        if (freshSession && !handshake(options, error)) {
-            return false;
-        }
         std::string replyText;
-        bool rejected = false;
-        if (!send(request, replyText, rejected, options, error)) {
-            if (rejected && attempt == 0) {
-                m_cipher.reset();
-                continue;
-            }
-            if (!rejected) {
-                // A dropped connection can leave the device a sequence number
-                // ahead or behind; start clean next time.
-                m_cipher.reset();
-            }
+        if (!exchange(request, replyText, options, error)) {
             return false;
         }
         json::Value reply;

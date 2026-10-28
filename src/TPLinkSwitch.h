@@ -8,7 +8,8 @@
 
 class TPLinkSwitch : public TPLinkItem, public BaseSwitch{
 public:
-    TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num );
+    TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num,
+                 tplink::tapo::Credentials const& klapCredentials = tplink::tapo::Credentials());
     virtual ~TPLinkSwitch();
 
     bool setRelayOn() override;

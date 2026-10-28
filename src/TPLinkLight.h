@@ -5,7 +5,8 @@
 
 class TPLinkLight : public TPLinkItem, public BaseLight{
 public:
-    TPLinkLight(std::string const& ip, unsigned int startChannel );
+    TPLinkLight(std::string const& ip, unsigned int startChannel,
+                tplink::tapo::Credentials const& klapCredentials = tplink::tapo::Credentials());
     virtual ~TPLinkLight();
 
     //bool SendData( unsigned char *data) override;

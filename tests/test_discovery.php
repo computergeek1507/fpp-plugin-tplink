@@ -27,7 +27,8 @@ check(tplinkTypeCode(tplinkSuggestType('tdp', 'AES', 'SMART.TAPOPLUG')) == '', "
 echo "suggested plugin types\n";
 check(tplinkSuggestType('tdp', 'KLAP', 'SMART.TAPOBULB') == 'Tapo Light', "bulb");
 check(strpos(tplinkSuggestType('tdp', 'AES', 'SMART.TAPOPLUG'), 'old firmware') !== false, "AES firmware");
-check(strpos(tplinkSuggestType('tdp', 'KLAP', 'IOT.SMARTPLUGSWITCH'), 'Not supported') !== false, "Kasa on KLAP");
+check(tplinkSuggestType('tdp', 'KLAP', 'IOT.SMARTPLUGSWITCH') == 'TPLink Switch/Plug', "Kasa plug on KLAP");
+check(tplinkSuggestType('tdp', 'KLAP', 'IOT.SMARTBULB') == 'TPLink Light', "Kasa bulb on KLAP");
 check(tplinkSuggestType('legacy', '', 'IOT.SMARTBULB') == 'TPLink Light', "legacy bulb");
 check(count(tplinkBroadcastTargets()) >= 1, "broadcast targets");
 

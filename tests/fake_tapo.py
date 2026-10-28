@@ -107,6 +107,18 @@ def handle_smart(req):
     raise ValueError(-1002)
 
 
+def handle_iot(req):
+    """The old Kasa command set, as Kasa devices that moved to KLAP still speak it."""
+    system = req["system"]
+    if "get_sysinfo" in system:
+        return {"system": {"get_sysinfo": {"alias": "Kasa on KLAP", "model": "HS100(US)", "deviceId": "DEV123",
+                                           "relay_state": 1 if STATE["device_on"] else 0, "err_code": 0}}}
+    if "set_relay_state" in system:
+        STATE["device_on"] = bool(system["set_relay_state"]["state"])
+        return {"system": {"set_relay_state": {"err_code": 0}}}
+    return {"system": {"err_code": -1}}
+
+
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
@@ -221,7 +233,9 @@ class Handler(BaseHTTPRequestHandler):
         session._generate_cipher()
         req = json.loads(session.decrypt(payload))
         STATE["requests"].append(req)
-        if STATE["fail_next_code"]:
+        if "system" in req:
+            resp = handle_iot(req)
+        elif STATE["fail_next_code"]:
             resp = {"error_code": STATE["fail_next_code"]}
             STATE["fail_next_code"] = 0
         else:

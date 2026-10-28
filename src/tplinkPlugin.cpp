@@ -631,7 +631,7 @@ public:
         } else if (devicetype.find("light") != std::string::npos ||
             devicetype.find("tplinklight") != std::string::npos ||
             devicetype.find("tplink") != std::string::npos) {
-            tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
+            tplinkItem = std::make_unique<TPLinkLight>(ip, sc, _tapoCredentials);
         }  else if (devicetype.find("goveelight") != std::string::npos ||
                     devicetype.find("govee") != std::string::npos) {
             tplinkItem = std::make_unique<GoveeLight>(ip, sc);
@@ -640,7 +640,7 @@ public:
             tplinkItem = std::make_unique<TasmotaLight>(ip, sc);
         } else {
             LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
-            tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
+            tplinkItem = std::make_unique<TPLinkLight>(ip, sc, _tapoCredentials);
         }
         return tplinkItem;
     }
@@ -654,13 +654,13 @@ public:
         } else if (devicetype.find("switch") != std::string::npos||
             devicetype.find("tplinkswitch") != std::string::npos ||
             devicetype.find("tplink") != std::string::npos) {
-            tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plug_num);
+            tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plug_num, _tapoCredentials);
         } else if (devicetype.find("tasmotaswitch") != std::string::npos ||
                     devicetype.find("tasmota") != std::string::npos) {
             tplinkItem = std::make_unique<TasmotaSwitch>(ip, sc, plug_num);
         } else {
             LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
-            tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plug_num);
+            tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plug_num, _tapoCredentials);
         }
         return tplinkItem;
     }
@@ -705,13 +705,13 @@ public:
                         int const plugNum =  config[i].get("plugnumber", 0).asInt();
                         tplinkItem = std::make_unique<TasmotaSwitch>(ip, sc, plugNum);
                     } else if (devicetype.find("light") != std::string::npos) {
-                        tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
+                        tplinkItem = std::make_unique<TPLinkLight>(ip, sc, _tapoCredentials);
                     } else if (devicetype.find("switch") != std::string::npos) {
                         int const plugNum =  config[i].get("plugnumber", 0).asInt();
-                        tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plugNum);
+                        tplinkItem = std::make_unique<TPLinkSwitch>(ip, sc, plugNum, _tapoCredentials);
                     } else {
                         LogInfo(VB_PLUGIN, "Devicetype not found '%s'", devicetype.c_str());
-                        tplinkItem = std::make_unique<TPLinkLight>(ip, sc);
+                        tplinkItem = std::make_unique<TPLinkLight>(ip, sc, _tapoCredentials);
                     }
                     LogInfo(VB_PLUGIN, "Added %s\n", tplinkItem->GetConfigString().c_str());
                     if (auto* sw = dynamic_cast<BaseSwitch*>(tplinkItem.get())) {

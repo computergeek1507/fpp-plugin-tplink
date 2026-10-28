@@ -142,6 +142,20 @@ static void testHashOnlyCredentials() {
     CHECK(v1only.call("set_device_info", "{\"device_on\":true}", r, tapo::Options(), &err));
 }
 
+static void testIotOverKlap() {
+    std::puts("old Kasa commands over KLAP (request()) go through untouched");
+    resetDevice();
+    setDevice("{\"version\":1,\"username\":\"kasa@tp-link.net\",\"password\":\"kasaSetup\"}");
+    auto c = client();
+    std::string reply, err;
+    CHECK(c->request("{\"system\":{\"set_relay_state\":{\"state\":1}}}", reply, tapo::Options(), &err));
+    CHECK(reply.find("\"err_code\": 0") != std::string::npos);
+    CHECK(flag(deviceState().member("device_on")));
+    CHECK(c->request("{\"system\":{\"get_sysinfo\":{}}}", reply, tapo::Options(), &err));
+    CHECK(reply.find("DEV123") != std::string::npos);
+    CHECK(num(deviceState(), "handshakes") == 1);
+}
+
 static void testOnOff() {
     std::puts("plug on/off, with one handshake for several requests");
     resetDevice();
@@ -334,6 +348,7 @@ int main(int argc, char** argv) {
     testHashes();
     testHashOnlyCredentials();
     testOnOff();
+    testIotOverKlap();
     testWrongPassword();
     testFactoryDefaultAccount();
     testKasaKlapV1();

@@ -9,8 +9,9 @@
 #include <exception>
 #include <string>
 
-TPLinkSwitch::TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num) :
-BaseItem(ip,startChannel), TPLinkItem(ip,startChannel), BaseSwitch(ip,startChannel,plug_num)
+TPLinkSwitch::TPLinkSwitch(std::string const& ip, unsigned int startChannel, int plug_num,
+                           tplink::tapo::Credentials const& klapCredentials) :
+BaseItem(ip,startChannel), TPLinkItem(ip,startChannel,klapCredentials), BaseSwitch(ip,startChannel,plug_num)
 {
     m_deviceId = getDeviceId(plug_num, nullptr);
 }

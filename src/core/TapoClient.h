@@ -14,8 +14,10 @@ namespace klap {
 class Cipher;
 }
 
-// A native client for Tapo plugs, strips and bulbs: KLAP over HTTP on port 80,
-// carrying TP-Link's "SMART" JSON requests. Nothing here depends on FPP.
+// A native client for TP-Link's KLAP transport (HTTP on port 80): Tapo plugs,
+// strips and bulbs and newer Kasa devices with "SMART" JSON requests (call()),
+// and Kasa devices that moved their old "IOT" JSON onto KLAP (request()).
+// Nothing here depends on FPP.
 namespace tapo {
 
 // What the client authenticates with: the KLAP auth hashes, never the
@@ -61,6 +63,12 @@ public:
     bool call(std::string const& method, std::string const& paramsJson, json::Value& result,
               Options const& options, std::string* error = nullptr);
 
+    // Sends `json` as it is and gives back the device's reply text, with no
+    // SMART envelope or error_code check: for Kasa devices that speak the old
+    // IOT commands ({"system":{...}}) over KLAP. Same session handling as call().
+    bool request(std::string const& json, std::string& reply, Options const& options,
+                 std::string* error = nullptr);
+
     // call() wrapped in control_child, for outlet `childId` of a strip. Gives
     // back the child's own result.
     bool callChild(std::string const& childId, std::string const& method, std::string const& paramsJson,
@@ -84,6 +92,9 @@ private:
     bool handshake(Options const& options, std::string* error);
     bool send(std::string const& json, std::string& reply, bool& sessionRejected, Options const& options,
               std::string* error);
+    // Handshakes when needed and sends; retries once on a refused session.
+    // Takes m_mutex's lock from the caller.
+    bool exchange(std::string const& json, std::string& reply, Options const& options, std::string* error);
 
     std::string m_host;
     uint16_t m_port;

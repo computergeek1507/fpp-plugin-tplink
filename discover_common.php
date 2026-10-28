@@ -85,7 +85,9 @@ function tplinkSuggestType($family, $encrypt, $deviceType) {
         return 'Not supported (old firmware - update it in the Tapo app)';
     }
     if (strpos($deviceType, 'IOT.') === 0) {
-        return 'Not supported yet (Kasa device on KLAP)';
+        // A Kasa device whose firmware moved its old commands onto KLAP; the
+        // TPLink types notice the closed port 9999 and switch over by themselves.
+        return (stripos($deviceType, 'BULB') !== false) ? 'TPLink Light' : 'TPLink Switch/Plug';
     }
     if (strpos($deviceType, 'BULB') !== false) {
         return 'Tapo Light';

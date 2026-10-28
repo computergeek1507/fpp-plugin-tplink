@@ -28,6 +28,10 @@ Tapo plugs, power strips and bulbs are controlled directly over the local networ
 - For a power strip, set the Plug ID to the outlet number (1, 2, 3...). Plug ID 0 switches the whole strip.
 - Devices on old firmware that predates KLAP are not supported; update their firmware in the Tapo app.
 
+### Kasa devices on KLAP
+
+Some Kasa plugs and bulbs (for example HS100 hardware 4.1 or KP125M) closed the old TCP 9999 port in a firmware update and now take their usual commands over KLAP. Add them as **TPLink Switch/Plug** or **TPLink Light** as usual: when port 9999 refuses the connection, the plugin switches that device to KLAP by itself and logs it. These devices log in with the same account entered under **Tapo Account** (your TP-Link ID, which the Kasa app also uses), or with the Kasa factory default if they still accept it.
+
 ## Tests
 
 The flip rule, the per-plug sender and the Kasa protocol code live in `src/core` and build without FPP. `make -C tests` builds and runs their unit tests on macOS or Linux, against a fake plug on 127.0.0.1.
