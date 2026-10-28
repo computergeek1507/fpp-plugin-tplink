@@ -3,8 +3,8 @@ include /opt/fpp/src/makefiles/common/setup.mk
 all: libfpp-plugin-tplink.so
 debug: all
 
-OBJECTS_fpp_tplink_so += src/tplinkPlugin.o src/TPLinkItem.o src/TPLinkLight.o src/TPLinkSwitch.o src/BaseItem.o src/BaseSwitch.o src/BaseLight.o src/GoveeLight.o src/TasmotaLight.o src/TasmotaSwitch.o src/TapoItem.o src/TapoLight.o src/TapoSwitch.o src/core/KasaProtocol.o src/core/KasaSocket.o src/core/MiniJson.o src/core/RelaySender.o
-LIBS_fpp_tplink_so += -L/opt/fpp/src -lfpp
+OBJECTS_fpp_tplink_so += src/tplinkPlugin.o src/TPLinkItem.o src/TPLinkLight.o src/TPLinkSwitch.o src/BaseItem.o src/BaseSwitch.o src/BaseLight.o src/GoveeLight.o src/TasmotaLight.o src/TasmotaSwitch.o src/TapoItem.o src/TapoLight.o src/TapoSwitch.o src/core/KasaProtocol.o src/core/KasaSocket.o src/core/MiniJson.o src/core/RelaySender.o src/core/Klap.o src/core/TapoClient.o
+LIBS_fpp_tplink_so += -L/opt/fpp/src -lfpp -lcrypto
 CXXFLAGS_src/tplinkPlugin.o += -I/opt/fpp/src
 
 %.o: %.cpp Makefile

@@ -24,7 +24,73 @@ function convertAndGetSettings() {
 }
 
 $pluginJson = convertAndGetSettings();
+
+require_once __DIR__ . "/tapo_common.php";
+
+// The Tapo account is kept only as auth hashes (see tapo_common.php). Convert
+// a plaintext password left by an earlier version: a plugin-wide TapoPassword,
+// or the per-entry account older versions stored on each device row.
+global $pluginSettings;
+$tapoEmail = isset($pluginSettings['TapoUsername']) ? $pluginSettings['TapoUsername'] : "";
+$tapoHaveHash = isset($pluginSettings['TapoAuthV2']) && $pluginSettings['TapoAuthV2'] != "";
+if (isset($pluginSettings['TapoPassword']) && $pluginSettings['TapoPassword'] != "") {
+    if (!$tapoHaveHash) {
+        tapoSaveAccount($tapoEmail, $pluginSettings['TapoPassword']);
+        $tapoHaveHash = true;
+    } else {
+        tapoForgetSetting("TapoPassword");
+    }
+}
+if (!$tapoHaveHash) {
+    foreach ($pluginJson as $entry) {
+        $u = returnIfExists($entry, "username");
+        if ($u != "") {
+            tapoSaveAccount($u, returnIfExists($entry, "password"));
+            $tapoEmail = $u;
+            $tapoHaveHash = true;
+            break;
+        }
+    }
+}
+tapoStripEntryCredentials($settings['configDirectory'] . "/plugin.tplink.json");
+$pluginJson = convertAndGetSettings();
 ?>
+
+<div id="tapoAccount" class="settings">
+<fieldset>
+<legend>Tapo Account</legend>
+<p>All Tapo devices use this account: the email and password you sign in to the Tapo app with (both are case-sensitive). Newer Tapo firmware also needs Third-Party Compatibility turned on in the Tapo app (Me &rarr; Third-Party Services).</p>
+<p>The password is not stored. Saving keeps only a hash of the email and password that the devices check, which lets FPP control them but cannot be turned back into your password.</p>
+<table border=0>
+<tr><td>Email:</td><td><input type='text' id='tapoEmail' size='32' maxlength='128' autocomplete='username' value='<? echo htmlspecialchars($tapoEmail, ENT_QUOTES, 'UTF-8'); ?>' /></td></tr>
+<tr><td>Password:</td><td><input type='password' id='tapoPassword' size='32' maxlength='128' autocomplete='new-password' placeholder='<? echo $tapoHaveHash ? "Saved (enter to change)" : "Not set"; ?>' /></td></tr>
+<tr><td></td><td><input type='button' class='buttons genericButton' value='Save Tapo Account' onclick='SaveTapoAccount();' /> <span id='tapoAccountStatus'></span></td></tr>
+</table>
+<script>
+function SaveTapoAccount() {
+    var email = $('#tapoEmail').val().trim();
+    var password = $('#tapoPassword').val();
+    if (email == '' || password == '') {
+        $('#tapoAccountStatus').text('Enter both the email and password (the password is needed to make the hash).');
+        return;
+    }
+    $('#tapoAccountStatus').text('Saving...');
+    $.post('plugin.php?plugin=fpp-plugin-tplink&page=tapo_account.php&nopage=1',
+           { email: email, password: password })
+        .done(function () {
+            $('#tapoPassword').val('').attr('placeholder', 'Saved (enter to change)');
+            $('#tapoAccountStatus').text('Saved.');
+            SetRestartFlag(2);
+        })
+        .fail(function (xhr) {
+            var msg = 'Save failed.';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch (e) {}
+            $('#tapoAccountStatus').text(msg);
+        });
+}
+</script>
+</fieldset>
+</div>
 
 
 <div id="global" class="settings">
@@ -65,9 +131,6 @@ function AddTPLinkItem(type) {
     html += ">Tapo Switch</option></select>";
     var plugDisplay = (type == 'switch' || type == 'tasmotaswitch' || type == 'taposwitch') ? '' : 'display: none;';
     html += "<td><input type='number' value='0' min='0' max='10' class='plugnum' style='" + plugDisplay + "' />";
-    var tapoDisplay = (type == 'tapolight' || type == 'taposwitch') ? '' : 'display: none;';
-    html += "<td><input type='text' size='20' class='username' placeholder='Email' style='" + tapoDisplay + "' />";
-    html += "<td><input type='password' size='20' class='password' placeholder='Password' style='" + tapoDisplay + "' />";
     html += "</tr>";
     //selected
     $("#tplinkTableBody").append(html);
@@ -87,16 +150,11 @@ function SaveTPLinkItem(row) {
     var plugnum = parseInt($(row).find('.plugnum').val(),10);
 	var devicetype = $(row).find('.devicetype').val();
 
-    var username = $(row).find('.username').val();
-    var password = $(row).find('.password').val();
-
     var json = {
         "ip": ip,
         "startchannel": startchan,
         "devicetype": devicetype,
-        "plugnumber": plugnum,
-        "username": username,
-        "password": password
+        "plugnumber": plugnum
     };
     return json;
 }
@@ -163,10 +221,7 @@ $(document).ready(function() {
     $('#tplinkTableBody').on('change', '.devicetype', function() {
         var row = $(this).closest('tr');
         var val = $(this).val();
-        var isTapo = (val == 'tapolight' || val == 'taposwitch');
         var isPlug = (val == 'switch' || val == 'tasmotaswitch' || val == 'taposwitch');
-        row.find('.username').toggle(isTapo);
-        row.find('.password').toggle(isTapo);
         row.find('.plugnum').toggle(isPlug);
     });
 });
@@ -185,7 +240,7 @@ $(document).ready(function() {
 <div class='fppTableWrapper fppTableWrapperAsTable'>
 <div class='fppTableContents'>
 <table class="fppSelectableRowTable" id="tplinkTable"  width='100%'>
-<thead><tr class="fppTableHeader"><th>#</th><th></th><th>IP</th><th>Start Chan</th><th>Device Type</th><th>Plug ID</th><th>Username</th><th>Password</th></tr></thead>
+<thead><tr class="fppTableHeader"><th>#</th><th></th><th>IP</th><th>Start Chan</th><th>Device Type</th><th>Plug ID</th></tr></thead>
 <tbody id='tplinkTableBody'>
 </tbody>
 </table>
@@ -203,8 +258,6 @@ $.each(tplinkConfig, function( key, val ) {
     $(row).find('.ipaddress').val(val["ip"]);
     $(row).find('.startchan').val(val["startchannel"]);
     $(row).find('.plugnum').val(val["plugnumber"]);
-    $(row).find('.username').val(val["username"]);
-    $(row).find('.password').val(val["password"]);
 });
 </script>
 

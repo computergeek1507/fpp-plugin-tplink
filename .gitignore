@@ -35,3 +35,4 @@
 # Unit test binary
 tests/tplink_tests
 tests/*.dSYM/
+tests/tapo_tests
