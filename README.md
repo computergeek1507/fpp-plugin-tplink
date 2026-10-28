@@ -18,6 +18,17 @@ In more detail, for TPLink Switch/Plug, Tasmota Switch and Tapo Switch entries:
 
 The commands (TPLink Set Switch, TPLink Toggle Switch, TPLink All Switches On, Off and Toggle) work as before.
 
+## Tapo devices
+
+Tapo plugs, power strips and bulbs are controlled directly over the local network (TP-Link's KLAP protocol on port 80), with no cloud and no Python. Commands take a few tens of milliseconds once a session is open; the session is kept and reused for hours.
+
+- Enter your Tapo account (the email and password you use in the Tapo app) once, under **Tapo Account** on the plugin's settings page. Every Tapo device uses it.
+- Newer Tapo firmware only allows local control after you turn on **Third-Party Compatibility** in the Tapo app (Me → Third-Party Services).
+- For a power strip, set the Plug ID to the outlet number (1, 2, 3...). Plug ID 0 switches the whole strip.
+- Devices on old firmware that predates KLAP are not supported; update their firmware in the Tapo app.
+
 ## Tests
 
 The flip rule, the per-plug sender and the Kasa protocol code live in `src/core` and build without FPP. `make -C tests` builds and runs their unit tests on macOS or Linux, against a fake plug on 127.0.0.1.
+
+`tests/run_tapo_tests.sh` builds the native Tapo client tests and runs them against `tests/fake_tapo.py`, a fake Tapo device whose KLAP side is python-kasa's own code (`pip install python-kasa` first).

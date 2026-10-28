@@ -66,6 +66,10 @@ class TPLinkPlugin : public FPPPlugin {
 private:
     std::vector<std::unique_ptr <BaseItem>> _TPLinkOutputs;
     Json::Value config;
+    // The one Tapo account every Tapo device uses (TapoUsername/TapoPassword
+    // in the plugin's settings).
+    std::string _tapoUsername;
+    std::string _tapoPassword;
     // Commands registered with CommandManager. addCommand() does not take
     // ownership, so these are withdrawn and deleted again in shutdown().
     std::vector<Command*> _commands;
@@ -73,6 +77,7 @@ private:
 public:
     TPLinkPlugin() : FPPPlugin("fpp-plugin-tplink") {
         LogInfo(VB_PLUGIN, "Initializing TP-Link Plugin\n");
+        readTapoAccount();
         readFiles();
         registerCommand();
     }
@@ -572,13 +577,46 @@ public:
         outfile.close();
     }
 
-    std::unique_ptr<BaseItem> getLightDevicePtr(std::string const& devicetype, std::string const& ip, unsigned int sc,
-                                                std::string const& username = "", std::string const& password = "")
+    // Reads TapoUsername and TapoPassword from the plugin's settings file,
+    // which FPP's settings page writes as `Name = "value"` lines.
+    void readTapoAccount()
+    {
+#if FPP_MAJOR_VERSION < 6
+        std::string const settingsFile = "/home/fpp/media/config/plugin.fpp-plugin-tplink";
+#else
+        std::string const settingsFile = FPP_DIR_CONFIG("/plugin.fpp-plugin-tplink");
+#endif
+        std::ifstream in(settingsFile);
+        std::string line;
+        while (std::getline(in, line)) {
+            auto const eq = line.find('=');
+            if (eq == std::string::npos) {
+                continue;
+            }
+            auto trim = [](std::string v) {
+                auto const b = v.find_first_not_of(" \t\r");
+                auto const e = v.find_last_not_of(" \t\r");
+                return b == std::string::npos ? std::string() : v.substr(b, e - b + 1);
+            };
+            std::string const key = trim(line.substr(0, eq));
+            std::string value = trim(line.substr(eq + 1));
+            if (value.size() >= 2 && value.front() == '"' && value.back() == '"') {
+                value = value.substr(1, value.size() - 2);
+            }
+            if (key == "TapoUsername") {
+                _tapoUsername = value;
+            } else if (key == "TapoPassword") {
+                _tapoPassword = value;
+            }
+        }
+    }
+
+    std::unique_ptr<BaseItem> getLightDevicePtr(std::string const& devicetype, std::string const& ip, unsigned int sc)
     {
         std::unique_ptr<BaseItem> tplinkItem;
         if (devicetype.find("tapolight") != std::string::npos ||
             devicetype.find("tapo") != std::string::npos) {
-            tplinkItem = std::make_unique<TapoLight>(ip, sc, username, password);
+            tplinkItem = std::make_unique<TapoLight>(ip, sc, _tapoUsername, _tapoPassword);
         } else if (devicetype.find("light") != std::string::npos ||
             devicetype.find("tplinklight") != std::string::npos ||
             devicetype.find("tplink") != std::string::npos) {
@@ -596,13 +634,12 @@ public:
         return tplinkItem;
     }
 
-    std::unique_ptr<BaseItem> getSwitchDevicePtr(std::string const& devicetype, std::string const& ip, unsigned int sc, int plug_num,
-                                                 std::string const& username = "", std::string const& password = "")
+    std::unique_ptr<BaseItem> getSwitchDevicePtr(std::string const& devicetype, std::string const& ip, unsigned int sc, int plug_num)
     {
         std::unique_ptr<BaseItem> tplinkItem;
         if (devicetype.find("taposwitch") != std::string::npos ||
             devicetype.find("tapo") != std::string::npos) {
-            tplinkItem = std::make_unique<TapoSwitch>(ip, sc, plug_num, username, password);
+            tplinkItem = std::make_unique<TapoSwitch>(ip, sc, plug_num, _tapoUsername, _tapoPassword);
         } else if (devicetype.find("switch") != std::string::npos||
             devicetype.find("tplinkswitch") != std::string::npos ||
             devicetype.find("tplink") != std::string::npos) {
@@ -626,19 +663,30 @@ public:
         std::string configLocation = FPP_DIR_CONFIG("/plugin.tplink.json");
 #endif
         if (LoadJsonFromFile(configLocation, config)) {
+            // Older versions kept a Tapo account on each entry; use the first
+            // one until the global account is saved.
+            if (_tapoUsername.empty()) {
+                for (unsigned int i = 0; i < config.size(); i++) {
+                    std::string const u = config[i].get("username", "").asString();
+                    if (!u.empty()) {
+                        _tapoUsername = u;
+                        _tapoPassword = config[i].get("password", "").asString();
+                        LogInfo(VB_PLUGIN, "Using the Tapo account from entry %u; save it in the plugin's Tapo Account settings\n", i + 1);
+                        break;
+                    }
+                }
+            }
             for (unsigned int i = 0; i < config.size(); i++) {
                 std::string const ip = config[i]["ip"].asString();
                 std::string const devicetype = config[i].get("devicetype","light").asString();
                 unsigned int sc =  config[i].get("startchannel",1).asInt();
                 if(!ip.empty()) {
                     std::unique_ptr<BaseItem> tplinkItem;
-                    std::string const username = config[i].get("username", "").asString();
-                    std::string const password = config[i].get("password", "").asString();
                     if (devicetype.find("tapolight") != std::string::npos) {
-                        tplinkItem = std::make_unique<TapoLight>(ip, sc, username, password);
+                        tplinkItem = std::make_unique<TapoLight>(ip, sc, _tapoUsername, _tapoPassword);
                     } else if (devicetype.find("taposwitch") != std::string::npos) {
                         int const plugNum =  config[i].get("plugnumber", 0).asInt();
-                        tplinkItem = std::make_unique<TapoSwitch>(ip, sc, plugNum, username, password);
+                        tplinkItem = std::make_unique<TapoSwitch>(ip, sc, plugNum, _tapoUsername, _tapoPassword);
                     } else if (devicetype.find("goveelight") != std::string::npos) {
                         tplinkItem = std::make_unique<GoveeLight>(ip, sc);
                     } else if (devicetype.find("tasmotalight") != std::string::npos) {

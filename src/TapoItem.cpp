@@ -1,73 +1,72 @@
 #include "TapoItem.h"
 
-#include <stdlib.h>
-#include <cstdint>
-#include <thread>
-#include <cmath>
-#include <array>
+#include "core/TapoClient.h"
 
-#include <iostream>
-#include <istream>
-#include <ostream>
-
-static std::string getKasaPath() {
-    return "/home/fpp/media/plugins/fpp-plugin-tplink/env/bin/kasa";
-}
+#include <exception>
 
 TapoItem::TapoItem(std::string const& ip, unsigned int startChannel,
-                   std::string const& username, std::string const& password):
-    BaseItem(ip,startChannel), m_username(username), m_password(password)
+                   std::string const& username, std::string const& password) :
+    BaseItem(ip, startChannel),
+    m_client(tplink::tapo::Client::shared(ip, username, password))
 {
+    if (username.empty()) {
+        LogWarn(VB_PLUGIN, "Tapo %s: no Tapo account set; enter the Tapo email and password in the plugin settings\n",
+                ip.c_str());
+    }
 }
 
 TapoItem::~TapoItem() {
-
 }
 
 std::string TapoItem::getInfo() {
-    return sendCmd("state");
+    tplink::json::Value result;
+    if (!call("get_device_info", "", result)) {
+        return std::string();
+    }
+    return tplink::tapo::toJson(result);
 }
 
-std::string TapoItem::sendCmd(std::string const& cmd) {
+void TapoItem::logResult(char const* method, bool ok, std::string const& error) {
+    if (ok) {
+        if (m_unreachable.exchange(false)) {
+            LogInfo(VB_PLUGIN, "Tapo %s is answering again\n", m_ipAddress.c_str());
+        }
+        return;
+    }
+    // Log the first failure loudly, repeats only at debug level.
+    if (!m_unreachable.exchange(true)) {
+        LogWarn(VB_PLUGIN, "Tapo %s: %s failed: %s\n", m_ipAddress.c_str(), method, error.c_str());
+    } else {
+        LogDebug(VB_PLUGIN, "Tapo %s: %s failed: %s\n", m_ipAddress.c_str(), method, error.c_str());
+    }
+}
+
+bool TapoItem::call(std::string const& method, std::string const& paramsJson, tplink::json::Value& result,
+                    std::atomic<bool> const* cancel) {
+    std::string error;
+    bool ok = false;
     try {
-        std::string fullCmd = getKasaPath() + " --host " + m_ipAddress;
-        if (!m_username.empty()) {
-            fullCmd += " --username " + m_username;
-        }
-        if (!m_password.empty()) {
-            fullCmd += " --password " + m_password;
-        }
-        fullCmd += " " + cmd + " 2>&1";
-        LogInfo(VB_PLUGIN, "TapoItem: Running: %s\n", fullCmd.c_str());
-
-        std::array<char, 4096> buffer;
-        std::string result;
-
-        FILE* pipe = popen(fullCmd.c_str(), "r");
-        if (!pipe) {
-            LogInfo(VB_PLUGIN, "TapoItem: Failed to run kasa command\n");
-            m_unreachable = true;
-            return std::string("");
-        }
-
-        while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
-            result += buffer.data();
-        }
-
-        int status = pclose(pipe);
-        if (status != 0) {
-            LogInfo(VB_PLUGIN, "TapoItem: kasa command failed with status %d: %s\n", status, result.c_str());
-            m_unreachable = true;
-            return std::string("");
-        }
-
-        m_unreachable = false;
-        return result;
+        tplink::tapo::Options options;
+        options.cancel = cancel;
+        ok = m_client->call(method, paramsJson, result, options, &error);
+    } catch (std::exception const& ex) {
+        error = ex.what();
     }
-    catch(std::exception const& ex) {
-        LogInfo(VB_PLUGIN, "TapoItem: Error %s\n", ex.what());
-        m_unreachable = true;
-    }
-    return std::string("");
+    logResult(method.c_str(), ok, error);
+    return ok;
 }
 
+bool TapoItem::callChild(std::string const& childId, std::string const& method, std::string const& paramsJson,
+                         tplink::json::Value& result, std::atomic<bool> const* cancel) {
+    std::string error;
+    bool ok = false;
+    try {
+        tplink::tapo::Options options;
+        options.cancel = cancel;
+        ok = m_client->callChild(childId, method, paramsJson, result, options, &error);
+    } catch (std::exception const& ex) {
+        error = ex.what();
+    }
+    logResult(method.c_str(), ok, error);
+    return ok;
+}

@@ -24,7 +24,35 @@ function convertAndGetSettings() {
 }
 
 $pluginJson = convertAndGetSettings();
+
+// Older versions stored a Tapo account on each entry. Move the first one into
+// the plugin-wide Tapo account the first time this page is opened.
+global $pluginSettings;
+if (!isset($pluginSettings['TapoUsername']) || $pluginSettings['TapoUsername'] == "") {
+    foreach ($pluginJson as $entry) {
+        $u = returnIfExists($entry, "username");
+        if ($u != "") {
+            $p = returnIfExists($entry, "password");
+            WriteSettingToFile("TapoUsername", $u, "fpp-plugin-tplink");
+            WriteSettingToFile("TapoPassword", $p, "fpp-plugin-tplink");
+            $pluginSettings['TapoUsername'] = $u;
+            $pluginSettings['TapoPassword'] = $p;
+            break;
+        }
+    }
+}
 ?>
+
+<div id="tapoAccount" class="settings">
+<fieldset>
+<legend>Tapo Account</legend>
+<p>All Tapo devices use this account: the email and password you sign in to the Tapo app with (both are case-sensitive). Newer Tapo firmware also needs Third-Party Compatibility turned on in the Tapo app (Me &rarr; Third-Party Services).</p>
+<table border=0>
+<tr><td>Email:</td><td><? PrintSettingTextSaved("TapoUsername", 2, 0, 128, 32, "fpp-plugin-tplink"); ?></td></tr>
+<tr><td>Password:</td><td><? PrintSettingPasswordSaved("TapoPassword", 2, 0, 128, 32, "fpp-plugin-tplink"); ?></td></tr>
+</table>
+</fieldset>
+</div>
 
 
 <div id="global" class="settings">
@@ -65,9 +93,6 @@ function AddTPLinkItem(type) {
     html += ">Tapo Switch</option></select>";
     var plugDisplay = (type == 'switch' || type == 'tasmotaswitch' || type == 'taposwitch') ? '' : 'display: none;';
     html += "<td><input type='number' value='0' min='0' max='10' class='plugnum' style='" + plugDisplay + "' />";
-    var tapoDisplay = (type == 'tapolight' || type == 'taposwitch') ? '' : 'display: none;';
-    html += "<td><input type='text' size='20' class='username' placeholder='Email' style='" + tapoDisplay + "' />";
-    html += "<td><input type='password' size='20' class='password' placeholder='Password' style='" + tapoDisplay + "' />";
     html += "</tr>";
     //selected
     $("#tplinkTableBody").append(html);
@@ -87,16 +112,11 @@ function SaveTPLinkItem(row) {
     var plugnum = parseInt($(row).find('.plugnum').val(),10);
 	var devicetype = $(row).find('.devicetype').val();
 
-    var username = $(row).find('.username').val();
-    var password = $(row).find('.password').val();
-
     var json = {
         "ip": ip,
         "startchannel": startchan,
         "devicetype": devicetype,
-        "plugnumber": plugnum,
-        "username": username,
-        "password": password
+        "plugnumber": plugnum
     };
     return json;
 }
@@ -163,10 +183,7 @@ $(document).ready(function() {
     $('#tplinkTableBody').on('change', '.devicetype', function() {
         var row = $(this).closest('tr');
         var val = $(this).val();
-        var isTapo = (val == 'tapolight' || val == 'taposwitch');
         var isPlug = (val == 'switch' || val == 'tasmotaswitch' || val == 'taposwitch');
-        row.find('.username').toggle(isTapo);
-        row.find('.password').toggle(isTapo);
         row.find('.plugnum').toggle(isPlug);
     });
 });
@@ -185,7 +202,7 @@ $(document).ready(function() {
 <div class='fppTableWrapper fppTableWrapperAsTable'>
 <div class='fppTableContents'>
 <table class="fppSelectableRowTable" id="tplinkTable"  width='100%'>
-<thead><tr class="fppTableHeader"><th>#</th><th></th><th>IP</th><th>Start Chan</th><th>Device Type</th><th>Plug ID</th><th>Username</th><th>Password</th></tr></thead>
+<thead><tr class="fppTableHeader"><th>#</th><th></th><th>IP</th><th>Start Chan</th><th>Device Type</th><th>Plug ID</th></tr></thead>
 <tbody id='tplinkTableBody'>
 </tbody>
 </table>
@@ -203,8 +220,6 @@ $.each(tplinkConfig, function( key, val ) {
     $(row).find('.ipaddress').val(val["ip"]);
     $(row).find('.startchan').val(val["startchannel"]);
     $(row).find('.plugnum').val(val["plugnumber"]);
-    $(row).find('.username').val(val["username"]);
-    $(row).find('.password').val(val["password"]);
 });
 </script>
 
