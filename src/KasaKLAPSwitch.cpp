@@ -1,27 +1,27 @@
-#include "TapoSwitch.h"
+#include "KasaKLAPSwitch.h"
 
 #include "core/TapoClient.h"
 
 #include <string>
 
-TapoSwitch::TapoSwitch(std::string const& ip, unsigned int startChannel, int plug_num,
+KasaKLAPSwitch::KasaKLAPSwitch(std::string const& ip, unsigned int startChannel, int plug_num,
                        tplink::tapo::Credentials const& credentials) :
-    BaseItem(ip, startChannel), TapoItem(ip, startChannel, credentials),
+    BaseItem(ip, startChannel), KasaKLAPItem(ip, startChannel, credentials),
     BaseSwitch(ip, startChannel, plug_num)
 {
 }
 
-TapoSwitch::~TapoSwitch() {
+KasaKLAPSwitch::~KasaKLAPSwitch() {
     // The sequence sender calls into this object; stop it first.
     StopSequenceControl();
 }
 
-std::string TapoSwitch::GetConfigString() const {
+std::string KasaKLAPSwitch::GetConfigString() const {
     return "IP: " + GetIPAddress() + " Start Channel: " + std::to_string(GetStartChannel()) +
            " Device Type: " + GetType() + " Plug Number: " + std::to_string(m_plug_num);
 }
 
-std::string TapoSwitch::childId(std::atomic<bool> const* cancel) {
+std::string KasaKLAPSwitch::childId(std::atomic<bool> const* cancel) {
     {
         std::lock_guard<std::mutex> lock(m_childIdMutex);
         if (!m_childId.empty()) {
@@ -34,7 +34,7 @@ std::string TapoSwitch::childId(std::atomic<bool> const* cancel) {
     }
     const std::string id = tplink::tapo::childIdAt(result, m_plug_num);
     if (id.empty()) {
-        LogWarn(VB_PLUGIN, "Tapo %s has no outlet %d\n", m_ipAddress.c_str(), m_plug_num);
+        LogWarn(VB_PLUGIN, "KasaKLAP %s has no outlet %d\n", m_ipAddress.c_str(), m_plug_num);
         return id;
     }
     std::lock_guard<std::mutex> lock(m_childIdMutex);
@@ -42,7 +42,7 @@ std::string TapoSwitch::childId(std::atomic<bool> const* cancel) {
     return id;
 }
 
-bool TapoSwitch::setRelay(bool on, std::atomic<bool> const* cancel) {
+bool KasaKLAPSwitch::setRelay(bool on, std::atomic<bool> const* cancel) {
     const std::string params = on ? "{\"device_on\":true}" : "{\"device_on\":false}";
     tplink::json::Value result;
     if (m_plug_num <= 0) {
@@ -55,21 +55,21 @@ bool TapoSwitch::setRelay(bool on, std::atomic<bool> const* cancel) {
     return callChild(id, "set_device_info", params, result, cancel);
 }
 
-bool TapoSwitch::sendRelayState(bool on, std::atomic<bool> const& stop) {
+bool KasaKLAPSwitch::sendRelayState(bool on, std::atomic<bool> const& stop) {
     return setRelay(on, &stop);
 }
 
-bool TapoSwitch::setRelayOn() {
+bool KasaKLAPSwitch::setRelayOn() {
     return setRelay(true, nullptr);
 }
 
-bool TapoSwitch::setRelayOff() {
+bool KasaKLAPSwitch::setRelayOff() {
     return setRelay(false, nullptr);
 }
 
 // The LED belongs to the whole device, so a strip outlet sets the strip's.
 // set_led_info wants the device's full LED settings back with led_rule changed.
-bool TapoSwitch::setLed(bool on) {
+bool KasaKLAPSwitch::setLed(bool on) {
     tplink::json::Value info;
     if (!call("get_led_info", "", info)) {
         return false;
@@ -90,10 +90,10 @@ bool TapoSwitch::setLed(bool on) {
     return call("set_led_info", params, result);
 }
 
-bool TapoSwitch::setLedOn() {
+bool KasaKLAPSwitch::setLedOn() {
     return setLed(true);
 }
 
-bool TapoSwitch::setLedOff() {
+bool KasaKLAPSwitch::setLedOff() {
     return setLed(false);
 }

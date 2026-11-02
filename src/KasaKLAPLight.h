@@ -1,15 +1,15 @@
 #pragma once
 
-#include "TapoItem.h"
+#include "KasaKLAPItem.h"
 #include "BaseLight.h"
 
-class TapoLight : public TapoItem, public BaseLight {
+class KasaKLAPLight : public KasaKLAPItem, public BaseLight {
 public:
-    TapoLight(std::string const& ip, unsigned int startChannel,
+    KasaKLAPLight(std::string const& ip, unsigned int startChannel,
               tplink::tapo::Credentials const& credentials);
-    virtual ~TapoLight();
+    virtual ~KasaKLAPLight();
 
-    std::string GetType() const override { return "TapoLight"; }
+    std::string GetType() const override { return "KasaKLAPLight"; }
 
     bool setLightOnRGB(uint8_t r, uint8_t g, uint8_t b, int color_Temp = 0, int period = 0) override;
     bool setLightOnHSV(int hue, int saturation, int brightness, int color_Temp = 0, int period = 0) override;

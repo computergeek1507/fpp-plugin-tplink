@@ -1,22 +1,22 @@
-#include "TapoLight.h"
+#include "KasaKLAPLight.h"
 
 #include <algorithm>
 #include <string>
 
-TapoLight::TapoLight(std::string const& ip, unsigned int startChannel,
+KasaKLAPLight::KasaKLAPLight(std::string const& ip, unsigned int startChannel,
                      tplink::tapo::Credentials const& credentials) :
-    BaseItem(ip, startChannel), TapoItem(ip, startChannel, credentials),
+    BaseItem(ip, startChannel), KasaKLAPItem(ip, startChannel, credentials),
     BaseLight(ip, startChannel)
 {
 }
 
-TapoLight::~TapoLight() {
+KasaKLAPLight::~KasaKLAPLight() {
 }
 
 // Tapo bulbs take hue 0-360, saturation 0-100 and brightness 1-100; a colour
 // temperature, when given (in kelvin), takes precedence over hue and saturation.
 // Brightness 0 turns the bulb off. Tapo has no fade time, so `period` is unused.
-bool TapoLight::setLightOnHSV(int hue, int saturation, int brightness, int color_Temp, int period) {
+bool KasaKLAPLight::setLightOnHSV(int hue, int saturation, int brightness, int color_Temp, int period) {
     if (brightness <= 0) {
         return setLightOff();
     }
@@ -36,12 +36,12 @@ bool TapoLight::setLightOnHSV(int hue, int saturation, int brightness, int color
     return call("set_device_info", params, result);
 }
 
-bool TapoLight::setLightOff() {
+bool KasaKLAPLight::setLightOff() {
     tplink::json::Value result;
     return call("set_device_info", "{\"device_on\":false}", result);
 }
 
-bool TapoLight::setLightOnRGB(uint8_t r, uint8_t g, uint8_t b, int color_Temp, int period) {
+bool KasaKLAPLight::setLightOnRGB(uint8_t r, uint8_t g, uint8_t b, int color_Temp, int period) {
     float h, si, sv, i, v;
     RGBtoHSIV(r / 255.0f, g / 255.0f, b / 255.0f, h, si, sv, i, v);
 

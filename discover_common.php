@@ -90,10 +90,10 @@ function tplinkSuggestType($family, $encrypt, $deviceType) {
         return (stripos($deviceType, 'BULB') !== false) ? 'TPLink Light' : 'TPLink Switch/Plug';
     }
     if (strpos($deviceType, 'BULB') !== false) {
-        return 'Tapo Light';
+        return 'KasaKLAP Light';
     }
     if (strpos($deviceType, 'PLUG') !== false || strpos($deviceType, 'SWITCH') !== false) {
-        return 'Tapo Switch';
+        return 'KasaKLAP Switch';
     }
     return 'Not supported (' . $deviceType . ')';
 }
@@ -104,8 +104,8 @@ function tplinkTypeCode($suggestion) {
     $codes = array(
         'TPLink Light' => 'light',
         'TPLink Switch/Plug' => 'switch',
-        'Tapo Light' => 'tapolight',
-        'Tapo Switch' => 'taposwitch',
+        'KasaKLAP Light' => 'kasaklaplight',
+        'KasaKLAP Switch' => 'kasaklapswitch',
     );
     return isset($codes[$suggestion]) ? $codes[$suggestion] : '';
 }

@@ -105,6 +105,9 @@ var tplinkConfig = <? echo json_encode($pluginJson, JSON_PRETTY_PRINT); ?>;
 var uniqueId = 1;
 var modelOptions = "";
 function AddTPLinkItem(type) {
+    // Earlier versions called these types tapolight/taposwitch.
+    if (type == 'tapolight') { type = 'kasaklaplight'; }
+    if (type == 'taposwitch') { type = 'kasaklapswitch'; }
     var id = $("#tplinkTableBody > tr").length + 1;
     var html = "<tr class='fppTableRow";
     if (id % 2 != 0) {
@@ -124,12 +127,12 @@ function AddTPLinkItem(type) {
     if(type == 'tasmotalight') {html += " selected ";}
     html += ">Tasmota Light</option><option value='tasmotaswitch'";
     if(type == 'tasmotaswitch') {html += " selected ";}
-    html += ">Tasmota Switch</option><option value='tapolight'";
-    if(type == 'tapolight') {html += " selected ";}
-    html += ">Tapo Light</option><option value='taposwitch'";
-    if(type == 'taposwitch') {html += " selected ";}
-    html += ">Tapo Switch</option></select>";
-    var plugDisplay = (type == 'switch' || type == 'tasmotaswitch' || type == 'taposwitch') ? '' : 'display: none;';
+    html += ">Tasmota Switch</option><option value='kasaklaplight'";
+    if(type == 'kasaklaplight') {html += " selected ";}
+    html += ">KasaKLAP Light</option><option value='kasaklapswitch'";
+    if(type == 'kasaklapswitch') {html += " selected ";}
+    html += ">KasaKLAP Switch</option></select>";
+    var plugDisplay = (type == 'switch' || type == 'tasmotaswitch' || type == 'kasaklapswitch') ? '' : 'display: none;';
     html += "<td><input type='number' value='0' min='0' max='10' class='plugnum' style='" + plugDisplay + "' />";
     html += "</tr>";
     //selected
@@ -221,7 +224,7 @@ $(document).ready(function() {
     $('#tplinkTableBody').on('change', '.devicetype', function() {
         var row = $(this).closest('tr');
         var val = $(this).val();
-        var isPlug = (val == 'switch' || val == 'tasmotaswitch' || val == 'taposwitch');
+        var isPlug = (val == 'switch' || val == 'tasmotaswitch' || val == 'kasaklapswitch');
         row.find('.plugnum').toggle(isPlug);
     });
 });

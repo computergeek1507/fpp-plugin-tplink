@@ -19,13 +19,13 @@ $tapo = tplinkDiscover(1.0, array('127.0.0.1'), array('legacy' => array(), 'tdp'
 check(isset($tapo['127.0.0.1']), "Tapo device found");
 $d = $tapo['127.0.0.1'];
 check($d['model'] == 'P110(US)' && $d['type'] == 'SMART.TAPOPLUG' && $d['protocol'] == 'KLAP', "Tapo fields");
-check($d['suggest'] == 'Tapo Switch', "Tapo suggestion");
-check($d['code'] == 'taposwitch', "Tapo devicetype code");
-check(tplinkTypeCode('Tapo Light') == 'tapolight' && tplinkTypeCode('TPLink Light') == 'light', "light codes");
+check($d['suggest'] == 'KasaKLAP Switch', "Tapo suggestion");
+check($d['code'] == 'kasaklapswitch', "Tapo devicetype code");
+check(tplinkTypeCode('KasaKLAP Light') == 'kasaklaplight' && tplinkTypeCode('TPLink Light') == 'light', "light codes");
 check(tplinkTypeCode(tplinkSuggestType('tdp', 'AES', 'SMART.TAPOPLUG')) == '', "unsupported has no code");
 
 echo "suggested plugin types\n";
-check(tplinkSuggestType('tdp', 'KLAP', 'SMART.TAPOBULB') == 'Tapo Light', "bulb");
+check(tplinkSuggestType('tdp', 'KLAP', 'SMART.TAPOBULB') == 'KasaKLAP Light', "bulb");
 check(strpos(tplinkSuggestType('tdp', 'AES', 'SMART.TAPOPLUG'), 'old firmware') !== false, "AES firmware");
 check(tplinkSuggestType('tdp', 'KLAP', 'IOT.SMARTPLUGSWITCH') == 'TPLink Switch/Plug', "Kasa plug on KLAP");
 check(tplinkSuggestType('tdp', 'KLAP', 'IOT.SMARTBULB') == 'TPLink Light', "Kasa bulb on KLAP");

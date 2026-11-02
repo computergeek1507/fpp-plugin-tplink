@@ -8,7 +8,7 @@ https://raw.githubusercontent.com/computergeek1507/fpp-plugin-tplink/main/plugin
 
 A start channel means the sequence owns the plug. When a playlist starts, the plug is sent the channel's state on the very first frame (so a channel at 0 turns it off right away, not 30 seconds in). After that the plugin sends a command only when the on/off state changes.
 
-In more detail, for TPLink Switch/Plug, Tasmota Switch and Tapo Switch entries:
+In more detail, for TPLink Switch/Plug, Tasmota Switch and KasaKLAP Switch entries:
 
 - A channel value of 127 or more means on. Below 127 means off.
 - The plugin sends a command only when the on/off state changes. Holding the channel steady sends nothing more.
@@ -20,7 +20,7 @@ The commands (TPLink Set Switch, TPLink Toggle Switch, TPLink All Switches On, O
 
 ## Tapo devices
 
-Tapo plugs, power strips and bulbs are controlled directly over the local network (TP-Link's KLAP protocol on port 80), with no cloud and no Python. Commands take a few tens of milliseconds once a session is open; the session is kept and reused for hours.
+Tapo plugs, power strips and bulbs, and newer Kasa models that use TP-Link's SMART commands, are added as **KasaKLAP Switch** or **KasaKLAP Light** (called Tapo Switch/Tapo Light in earlier versions; existing entries keep working). They are controlled directly over the local network (TP-Link's KLAP protocol on port 80), with no cloud and no Python. Commands take a few tens of milliseconds once a session is open; the session is kept and reused for hours.
 
 - Enter your TP-Link ID (the email and password you use in the Kasa or Tapo app) once, under **Kasa/Tapo Account** on the plugin's settings page. Every Tapo device, and every Kasa device on KLAP, uses it.
 - The password itself is not stored. The plugin keeps only the hash of the email and password that the devices check during login (`TapoAuthV1`/`TapoAuthV2`), so the Tapo account password never sits on the FPP box or in its backups. The hash still lets FPP control your devices on the local network, so treat backups as you would any device credential.

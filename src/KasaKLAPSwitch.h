@@ -1,18 +1,18 @@
 #pragma once
 
 #include "BaseSwitch.h"
-#include "TapoItem.h"
+#include "KasaKLAPItem.h"
 
 #include <atomic>
 #include <mutex>
 #include <string>
 
-// A Tapo plug, or (plug number 1 and up) one outlet of a Tapo power strip.
-class TapoSwitch : public TapoItem, public BaseSwitch {
+// A KLAP plug, or (plug number 1 and up) one outlet of a KLAP power strip.
+class KasaKLAPSwitch : public KasaKLAPItem, public BaseSwitch {
 public:
-    TapoSwitch(std::string const& ip, unsigned int startChannel, int plug_num,
+    KasaKLAPSwitch(std::string const& ip, unsigned int startChannel, int plug_num,
                tplink::tapo::Credentials const& credentials);
-    virtual ~TapoSwitch();
+    virtual ~KasaKLAPSwitch();
 
     bool setRelayOn() override;
     bool setRelayOff() override;
@@ -20,7 +20,7 @@ public:
     bool setLedOn() override;
     bool setLedOff() override;
 
-    std::string GetType() const override { return "TapoSwitch"; }
+    std::string GetType() const override { return "KasaKLAPSwitch"; }
     std::string GetConfigString() const override;
 
 protected:

@@ -1,23 +1,23 @@
-#include "TapoItem.h"
+#include "KasaKLAPItem.h"
 
 #include "core/TapoClient.h"
 
 #include <exception>
 
-TapoItem::TapoItem(std::string const& ip, unsigned int startChannel, tplink::tapo::Credentials const& credentials) :
+KasaKLAPItem::KasaKLAPItem(std::string const& ip, unsigned int startChannel, tplink::tapo::Credentials const& credentials) :
     BaseItem(ip, startChannel),
     m_client(tplink::tapo::Client::shared(ip, credentials))
 {
     if (credentials.empty()) {
-        LogWarn(VB_PLUGIN, "Tapo %s: no Kasa/Tapo account set; enter it on the plugin's settings page\n",
+        LogWarn(VB_PLUGIN, "KasaKLAP %s: no Kasa/Tapo account set; enter it on the plugin's settings page\n",
                 ip.c_str());
     }
 }
 
-TapoItem::~TapoItem() {
+KasaKLAPItem::~KasaKLAPItem() {
 }
 
-std::string TapoItem::getInfo() {
+std::string KasaKLAPItem::getInfo() {
     tplink::json::Value result;
     if (!call("get_device_info", "", result)) {
         return std::string();
@@ -25,22 +25,22 @@ std::string TapoItem::getInfo() {
     return tplink::tapo::toJson(result);
 }
 
-void TapoItem::logResult(char const* method, bool ok, std::string const& error) {
+void KasaKLAPItem::logResult(char const* method, bool ok, std::string const& error) {
     if (ok) {
         if (m_unreachable.exchange(false)) {
-            LogInfo(VB_PLUGIN, "Tapo %s is answering again\n", m_ipAddress.c_str());
+            LogInfo(VB_PLUGIN, "KasaKLAP %s is answering again\n", m_ipAddress.c_str());
         }
         return;
     }
     // Log the first failure loudly, repeats only at debug level.
     if (!m_unreachable.exchange(true)) {
-        LogWarn(VB_PLUGIN, "Tapo %s: %s failed: %s\n", m_ipAddress.c_str(), method, error.c_str());
+        LogWarn(VB_PLUGIN, "KasaKLAP %s: %s failed: %s\n", m_ipAddress.c_str(), method, error.c_str());
     } else {
-        LogDebug(VB_PLUGIN, "Tapo %s: %s failed: %s\n", m_ipAddress.c_str(), method, error.c_str());
+        LogDebug(VB_PLUGIN, "KasaKLAP %s: %s failed: %s\n", m_ipAddress.c_str(), method, error.c_str());
     }
 }
 
-bool TapoItem::call(std::string const& method, std::string const& paramsJson, tplink::json::Value& result,
+bool KasaKLAPItem::call(std::string const& method, std::string const& paramsJson, tplink::json::Value& result,
                     std::atomic<bool> const* cancel) {
     std::string error;
     bool ok = false;
@@ -55,7 +55,7 @@ bool TapoItem::call(std::string const& method, std::string const& paramsJson, tp
     return ok;
 }
 
-bool TapoItem::callChild(std::string const& childId, std::string const& method, std::string const& paramsJson,
+bool KasaKLAPItem::callChild(std::string const& childId, std::string const& method, std::string const& paramsJson,
                          tplink::json::Value& result, std::atomic<bool> const* cancel) {
     std::string error;
     bool ok = false;

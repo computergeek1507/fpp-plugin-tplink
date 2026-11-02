@@ -54,12 +54,12 @@
 #include "GoveeLight.h"
 #include "TasmotaLight.h"
 #include "TasmotaSwitch.h"
-#include "TapoLight.h"
-#include "TapoSwitch.h"
+#include "KasaKLAPLight.h"
+#include "KasaKLAPSwitch.h"
 #include "core/TapoClient.h"
 
-#define LIGHT_TYPES {"tplink", "tasmota", "govee", "tapo"}
-#define SWITCH_TYPES {"tplink", "tasmota", "tapo"}
+#define LIGHT_TYPES {"tplink", "tasmota", "govee", "kasaklap"}
+#define SWITCH_TYPES {"tplink", "tasmota", "kasaklap"}
 
 using namespace std::chrono_literals;
 
@@ -625,9 +625,10 @@ public:
     std::unique_ptr<BaseItem> getLightDevicePtr(std::string const& devicetype, std::string const& ip, unsigned int sc)
     {
         std::unique_ptr<BaseItem> tplinkItem;
-        if (devicetype.find("tapolight") != std::string::npos ||
+        // "tapo"/"tapolight" are what earlier versions called this type.
+        if (devicetype.find("kasaklap") != std::string::npos ||
             devicetype.find("tapo") != std::string::npos) {
-            tplinkItem = std::make_unique<TapoLight>(ip, sc, _tapoCredentials);
+            tplinkItem = std::make_unique<KasaKLAPLight>(ip, sc, _tapoCredentials);
         } else if (devicetype.find("light") != std::string::npos ||
             devicetype.find("tplinklight") != std::string::npos ||
             devicetype.find("tplink") != std::string::npos) {
@@ -648,9 +649,10 @@ public:
     std::unique_ptr<BaseItem> getSwitchDevicePtr(std::string const& devicetype, std::string const& ip, unsigned int sc, int plug_num)
     {
         std::unique_ptr<BaseItem> tplinkItem;
-        if (devicetype.find("taposwitch") != std::string::npos ||
+        // "tapo"/"taposwitch" are what earlier versions called this type.
+        if (devicetype.find("kasaklap") != std::string::npos ||
             devicetype.find("tapo") != std::string::npos) {
-            tplinkItem = std::make_unique<TapoSwitch>(ip, sc, plug_num, _tapoCredentials);
+            tplinkItem = std::make_unique<KasaKLAPSwitch>(ip, sc, plug_num, _tapoCredentials);
         } else if (devicetype.find("switch") != std::string::npos||
             devicetype.find("tplinkswitch") != std::string::npos ||
             devicetype.find("tplink") != std::string::npos) {
@@ -692,11 +694,14 @@ public:
                 unsigned int sc =  config[i].get("startchannel",1).asInt();
                 if(!ip.empty()) {
                     std::unique_ptr<BaseItem> tplinkItem;
-                    if (devicetype.find("tapolight") != std::string::npos) {
-                        tplinkItem = std::make_unique<TapoLight>(ip, sc, _tapoCredentials);
-                    } else if (devicetype.find("taposwitch") != std::string::npos) {
+                    // tapolight/taposwitch are the earlier names of these types.
+                    if (devicetype.find("kasaklaplight") != std::string::npos ||
+                        devicetype.find("tapolight") != std::string::npos) {
+                        tplinkItem = std::make_unique<KasaKLAPLight>(ip, sc, _tapoCredentials);
+                    } else if (devicetype.find("kasaklapswitch") != std::string::npos ||
+                               devicetype.find("taposwitch") != std::string::npos) {
                         int const plugNum =  config[i].get("plugnumber", 0).asInt();
-                        tplinkItem = std::make_unique<TapoSwitch>(ip, sc, plugNum, _tapoCredentials);
+                        tplinkItem = std::make_unique<KasaKLAPSwitch>(ip, sc, plugNum, _tapoCredentials);
                     } else if (devicetype.find("goveelight") != std::string::npos) {
                         tplinkItem = std::make_unique<GoveeLight>(ip, sc);
                     } else if (devicetype.find("tasmotalight") != std::string::npos) {

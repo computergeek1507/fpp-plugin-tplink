@@ -11,13 +11,14 @@
 
 #include "log.h"
 
-// A Tapo device, spoken to natively over KLAP (see core/TapoClient.h). All
+// A device that takes TP-Link's SMART commands over KLAP: Tapo plugs, strips
+// and bulbs, and newer Kasa models. Spoken to natively (see core/TapoClient.h). All
 // Tapo devices share the one Tapo account set in the plugin's settings, which
 // holds only the account's KLAP auth hashes, not its password.
-class TapoItem : virtual public BaseItem {
+class KasaKLAPItem : virtual public BaseItem {
 public:
-    TapoItem(std::string const& ip, unsigned int startChannel, tplink::tapo::Credentials const& credentials);
-    virtual ~TapoItem();
+    KasaKLAPItem(std::string const& ip, unsigned int startChannel, tplink::tapo::Credentials const& credentials);
+    virtual ~KasaKLAPItem();
 
     // get_device_info's result as JSON text, or "" when it fails.
     std::string getInfo();
